@@ -11,24 +11,44 @@ struct AppCoordinatorView: View {
                     viewModel: folderViewModel,
                     hasCompletedOnboarding: $hasCompletedOnboarding
                 )
+                .onAppear {
+                    setupFolderValidationHandler()
+                }
             } else {
                 MainAppView(folderViewModel: folderViewModel)
             }
         }
         .onAppear {
-            checkFolderStatus()
+            resolveAndValidateFolder()
         }
     }
     
-    private func checkFolderStatus() {
-        // If we've already completed onboarding but the folder is no longer valid,
-        // we need to show the welcome view again
-        if hasCompletedOnboarding {
-            folderViewModel.validateSelectedFolder()
+    private func resolveAndValidateFolder() {
+        FolderManager.shared.resolveBookmark { result in
             
-            if !folderViewModel.hasSelectedFolder || !folderViewModel.isValidFolder {
-                // Reset the onboarding flag if the folder is no longer valid
-                hasCompletedOnboarding = false
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    self.folderViewModel.validateSelectedFolder()
+                    
+                    if hasCompletedOnboarding && 
+                       (!self.folderViewModel.hasSelectedFolder || !self.folderViewModel.isValidFolder) {
+                        hasCompletedOnboarding = false
+                    }
+                    
+                case .failure:
+                    hasCompletedOnboarding = false
+                    self.folderViewModel.validateSelectedFolder()
+                }
+            }
+        }
+    }
+    
+    private func setupFolderValidationHandler() {
+        folderViewModel.onFolderSelected = { success in
+            
+            if self.folderViewModel.isValidFolder && !self.hasCompletedOnboarding {
+                hasCompletedOnboarding = true
             }
         }
     }

@@ -37,7 +37,6 @@ final class FolderSelectionViewModel: ObservableObject {
     }
     
     deinit {
-        // Ensure we stop accessing the resource when the view model is deallocated
         FolderManager.shared.stopAccessingFolder()
     }
     
@@ -65,7 +64,7 @@ final class FolderSelectionViewModel: ObservableObject {
     }
     
     func validateSelectedFolder() {
-        guard let url = selectedFolderURL else {
+        guard selectedFolderURL != nil else {
             updateFolderState(isValid: false, error: nil)
             return
         }
@@ -87,7 +86,6 @@ final class FolderSelectionViewModel: ObservableObject {
     
     private func handlePanelResponse(_ response: NSApplication.ModalResponse, openPanel: NSOpenPanel) {
         guard response == .OK, let url = openPanel.url else {
-            // User canceled
             onFolderSelected?(false)
             return
         }
