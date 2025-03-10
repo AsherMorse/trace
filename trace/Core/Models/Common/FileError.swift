@@ -4,7 +4,7 @@ enum FileError: Error, LocalizedError {
     case accessDenied
     case directoryNotFound
     case readError
-    
+
     var errorDescription: String? {
         switch self {
         case .accessDenied:
@@ -15,4 +15,4 @@ enum FileError: Error, LocalizedError {
             return "Failed to read directory contents"
         }
     }
-} 
+}

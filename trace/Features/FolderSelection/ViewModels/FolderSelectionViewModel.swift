@@ -1,26 +1,26 @@
 import SwiftUI
-import Combine
 import AppKit
 
-final class FolderSelectionViewModel: ObservableObject {
-    @Published private(set) var selectedFolderURL: URL?
-    @Published private(set) var errorMessage: String?
-    @Published private(set) var isValidFolder: Bool = false
-    
+@Observable
+final class FolderSelectionViewModel {
+    private(set) var selectedFolderURL: URL?
+    private(set) var errorMessage: String?
+    private(set) var isValidFolder: Bool = false
+
     var onFolderSelected: ((Bool) -> Void)?
-    
+
     var hasSelectedFolder: Bool {
         selectedFolderURL != nil
     }
-    
+
     var hasError: Bool {
         errorMessage != nil
     }
-    
+
     var displayPath: String {
         selectedFolderURL?.path ?? "No folder selected"
     }
-    
+
     var statusMessage: String {
         if let error = errorMessage {
             return error
@@ -30,16 +30,16 @@ final class FolderSelectionViewModel: ObservableObject {
         }
         return "Please select a folder"
     }
-    
+
     init() {
         selectedFolderURL = FolderManager.shared.selectedFolderURL
         validateSelectedFolder()
     }
-    
+
     deinit {
         FolderManager.shared.stopAccessingFolder()
     }
-    
+
     func selectFolder() {
         let openPanel = NSOpenPanel()
         openPanel.canChooseFiles = false
@@ -48,58 +48,57 @@ final class FolderSelectionViewModel: ObservableObject {
         openPanel.canCreateDirectories = true
         openPanel.prompt = "Select"
         openPanel.message = "Select a folder to store your journal entries"
-        
+
         openPanel.begin { [weak self] response in
             guard let self = self else { return }
-            
-            DispatchQueue.main.async {
+
+            Task { @MainActor in
                 self.handlePanelResponse(response, openPanel: openPanel)
             }
         }
     }
-    
+
     func openInFinder() {
         guard let url = selectedFolderURL else { return }
         NSWorkspace.shared.open(url)
     }
-    
+
     func validateSelectedFolder() {
         guard selectedFolderURL != nil else {
             updateFolderState(isValid: false, error: nil)
             return
         }
-        
+
         let canAccess = FolderManager.shared.canAccessSelectedFolder()
         let error = canAccess ? nil : "Cannot access the selected folder"
         updateFolderState(isValid: canAccess, error: error)
     }
-    
+
     func changeFolder() {
         selectFolder()
     }
-    
+
     private func updateFolderState(isValid: Bool, error: String?) {
         isValidFolder = isValid
         errorMessage = error
-        objectWillChange.send()
     }
-    
+
     private func handlePanelResponse(_ response: NSApplication.ModalResponse, openPanel: NSOpenPanel) {
         guard response == .OK, let url = openPanel.url else {
             onFolderSelected?(false)
             return
         }
-        
+
         saveSelectedFolder(url)
     }
-    
+
     private func saveSelectedFolder(_ url: URL) {
         updateFolderState(isValid: false, error: nil)
-        
+
         FolderManager.shared.saveSelectedFolder(url: url) { [weak self] result in
             guard let self = self else { return }
-            
-            DispatchQueue.main.async {
+
+            Task { @MainActor in
                 switch result {
                 case .success:
                     self.selectedFolderURL = url
@@ -112,10 +111,10 @@ final class FolderSelectionViewModel: ObservableObject {
             }
         }
     }
-    
+
     private func handleError(_ error: FolderError) {
         let errorMessage: String
-        
+
         switch error {
         case .folderNotFound:
             errorMessage = "The selected folder could not be found"
@@ -126,7 +125,7 @@ final class FolderSelectionViewModel: ObservableObject {
         case .bookmarkResolutionFailed:
             errorMessage = "Failed to resolve the saved folder"
         }
-        
+
         updateFolderState(isValid: false, error: errorMessage)
     }
-} 
+}

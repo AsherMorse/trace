@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct AppCoordinatorView: View {
-    @StateObject private var folderViewModel = FolderSelectionViewModel()
+    @State private var folderViewModel = FolderSelectionViewModel()
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    
+
     var body: some View {
         Group {
             if !hasCompletedOnboarding || !folderViewModel.isValidFolder {
@@ -22,20 +22,19 @@ struct AppCoordinatorView: View {
             resolveAndValidateFolder()
         }
     }
-    
+
     private func resolveAndValidateFolder() {
         FolderManager.shared.resolveBookmark { result in
-            
-            DispatchQueue.main.async {
+            Task { @MainActor in
                 switch result {
                 case .success:
                     self.folderViewModel.validateSelectedFolder()
-                    
-                    if hasCompletedOnboarding && 
+
+                    if hasCompletedOnboarding &&
                        (!self.folderViewModel.hasSelectedFolder || !self.folderViewModel.isValidFolder) {
                         hasCompletedOnboarding = false
                     }
-                    
+
                 case .failure:
                     hasCompletedOnboarding = false
                     self.folderViewModel.validateSelectedFolder()
@@ -43,10 +42,9 @@ struct AppCoordinatorView: View {
             }
         }
     }
-    
+
     private func setupFolderValidationHandler() {
-        folderViewModel.onFolderSelected = { success in
-            
+        folderViewModel.onFolderSelected = { _ in
             if self.folderViewModel.isValidFolder && !self.hasCompletedOnboarding {
                 hasCompletedOnboarding = true
             }
@@ -56,24 +54,24 @@ struct AppCoordinatorView: View {
 
 // Temporary placeholder for the main app view
 struct MainAppView: View {
-    @ObservedObject var folderViewModel: FolderSelectionViewModel
+    var folderViewModel: FolderSelectionViewModel
     @State private var showFolderSettings = false
-    
+
     var body: some View {
         VStack {
             Text("Trace Journal")
                 .font(.largeTitle)
                 .padding()
-            
+
             Text("Journal folder: \(folderViewModel.displayPath)")
                 .font(.callout)
                 .padding()
-            
+
             Button("Change Journal Folder") {
                 showFolderSettings = true
             }
             .padding()
-            
+
             Button("Reset Folder Selection") {
                 FolderManager.shared.resetFolderSelection()
                 folderViewModel.validateSelectedFolder()
@@ -91,4 +89,4 @@ struct AppCoordinatorView_Previews: PreviewProvider {
     static var previews: some View {
         AppCoordinatorView()
     }
-} 
+}

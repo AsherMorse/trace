@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 @main
-struct traceApp: App {
+struct TraceApp: App {
     var body: some Scene {
         WindowGroup {
             AppCoordinatorView()

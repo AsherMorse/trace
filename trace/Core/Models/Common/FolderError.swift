@@ -5,7 +5,7 @@ enum FolderError: Error, LocalizedError {
     case bookmarkResolutionFailed
     case accessDenied
     case folderNotFound
-    
+
     var errorDescription: String? {
         switch self {
         case .folderNotFound:
@@ -18,4 +18,4 @@ enum FolderError: Error, LocalizedError {
             return "Failed to resolve the saved folder"
         }
     }
-} 
+}
