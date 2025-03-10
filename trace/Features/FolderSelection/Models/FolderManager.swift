@@ -14,13 +14,6 @@ final class FolderManager {
         static let selectedFolderBookmark = "com.trace.selectedFolderBookmark"
     }
     
-    enum Error: Swift.Error {
-        case bookmarkCreationFailed
-        case bookmarkResolutionFailed
-        case accessDenied
-        case folderNotFound
-    }
-    
     private init() {
         loadSavedFolder()
     }
@@ -48,7 +41,7 @@ final class FolderManager {
     
     // MARK: - Folder Selection
     
-    func saveSelectedFolder(url: URL, completion: ((Result<Void, Error>) -> Void)? = nil) {
+    func saveSelectedFolder(url: URL, completion: ((Result<Void, FolderError>) -> Void)? = nil) {
         stopAccessingFolder()
         
         guard FileManager.default.fileExists(atPath: url.path) else {
@@ -90,7 +83,7 @@ final class FolderManager {
         resolveBookmark()
     }
     
-    func resolveBookmark(completion: ((Result<Void, Error>) -> Void)? = nil) {
+    func resolveBookmark(completion: ((Result<Void, FolderError>) -> Void)? = nil) {
         guard let bookmarkData = self.bookmarkData else { 
             completion?(.success(()))
             return 

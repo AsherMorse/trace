@@ -113,7 +113,7 @@ final class FolderSelectionViewModel: ObservableObject {
         }
     }
     
-    private func handleError(_ error: FolderManager.Error) {
+    private func handleError(_ error: FolderError) {
         let errorMessage: String
         
         switch error {
