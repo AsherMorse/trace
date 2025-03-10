@@ -6,7 +6,6 @@ struct FileItem: Identifiable, Hashable {
     let id = UUID()
     let url: URL
     let isDirectory: Bool
-    var isExpanded: Bool = false
     var children: [FileItem]?
     var isAccessDenied: Bool = false
     var depth: Int = 0
@@ -28,6 +27,7 @@ struct FileItem: Identifiable, Hashable {
 struct FileExplorerView: View {
     @Bindable var viewModel: FolderSelectionViewModel
     @State private var displayItems: [FileItem] = []
+    @State private var expandedItemIDs: Set<UUID> = [] // Central state for tracking expanded items
     @State private var viewUpdateCounter = 0
     private let logger = Logger(subsystem: "com.yourcompany.trace", category: "FileExplorer")
     
@@ -71,7 +71,7 @@ struct FileExplorerView: View {
         Group {
             if item.isDirectory {
                 HStack {
-                    Image(systemName: item.isExpanded ? "chevron.down" : "chevron.right")
+                    Image(systemName: expandedItemIDs.contains(item.id) ? "chevron.down" : "chevron.right")
                         .frame(width: 12)
                     
                     Image(systemName: item.isAccessDenied ? "folder.badge.questionmark" : "folder")
@@ -103,31 +103,28 @@ struct FileExplorerView: View {
             return
         }
         
-        var updatedItems = displayItems
-        let currentExpanded = updatedItems[index].isExpanded
+        let isExpanded = expandedItemIDs.contains(item.id)
         
-        if currentExpanded {
+        if isExpanded {
             logger.info("Collapsing directory: \(item.url.lastPathComponent)")
-            updatedItems[index].isExpanded = false
-            removeChildren(of: item, from: &updatedItems)
+            expandedItemIDs.remove(item.id)
+            removeChildren(of: item, from: &displayItems)
+            forceViewUpdate()
         } else {
             logger.info("Expanding directory: \(item.url.lastPathComponent)")
-            updatedItems[index].isExpanded = true
+            expandedItemIDs.insert(item.id)
             
-            if let children = updatedItems[index].children {
+            if let children = displayItems[index].children {
                 logger.info("Using existing \(children.count) children for \(item.url.lastPathComponent)")
-                insertChildren(children, afterParentIndex: index, into: &updatedItems, parentDepth: item.depth)
+                insertChildren(children, afterParentIndex: index, into: &displayItems, parentDepth: item.depth)
+                forceViewUpdate()
             } else {
-                updatedItems[index].children = []
-                displayItems = updatedItems
+                // We need to load children
+                // Don't remove the expanded state during async operation
                 forceViewUpdate()
                 loadDirectoryContents(for: item)
-                return
             }
         }
-        
-        displayItems = updatedItems
-        forceViewUpdate()
     }
     
     private func insertChildren(_ children: [FileItem], afterParentIndex parentIndex: Int, into items: inout [FileItem], parentDepth: Int) {
@@ -149,6 +146,10 @@ struct FileExplorerView: View {
         
         while indexToCheck < items.count {
             if items[indexToCheck].depth > parentDepth {
+                // Also remove from expanded IDs if it's a directory
+                if items[indexToCheck].isDirectory {
+                    expandedItemIDs.remove(items[indexToCheck].id)
+                }
                 items.remove(at: indexToCheck)
             } else {
                 break
@@ -216,6 +217,9 @@ struct FileExplorerView: View {
         
         logger.info("Loading contents for directory: \(item.url.lastPathComponent)")
         
+        // Store the item ID we're currently loading
+        let itemID = item.id
+        
         do {
             let contents = try FileManager.default.contentsOfDirectory(
                 at: item.url,
@@ -245,36 +249,50 @@ struct FileExplorerView: View {
             
             logger.info("Directory \(item.url.lastPathComponent) filtered to \(filteredContents.count) markdown-related items")
             
-            guard let itemIndex = displayItems.firstIndex(where: { $0.id == item.id }) else {
-                logger.warning("Could not find item to update: \(item.url.lastPathComponent)")
-                return
+            // Use DispatchQueue.main.async to ensure UI updates happen on the main thread
+            DispatchQueue.main.async {
+                // Check if the directory is still expanded before updating UI
+                if self.expandedItemIDs.contains(itemID) {
+                    guard let itemIndex = self.displayItems.firstIndex(where: { $0.id == itemID }) else {
+                        self.logger.warning("Could not find item to update: \(item.url.lastPathComponent)")
+                        return
+                    }
+                    
+                    for (index, child) in filteredContents.enumerated() {
+                        self.logger.info("  Child \(index + 1): \(child.url.lastPathComponent) (\(child.isDirectory ? "directory" : "file"))")
+                    }
+                    
+                    var updatedItems = self.displayItems
+                    updatedItems[itemIndex].children = filteredContents
+                    
+                    self.insertChildren(filteredContents, afterParentIndex: itemIndex, into: &updatedItems, parentDepth: item.depth)
+                    
+                    self.displayItems = updatedItems
+                    self.forceViewUpdate()
+                } else {
+                    self.logger.info("Directory no longer expanded, skipping UI update for: \(item.url.lastPathComponent)")
+                }
             }
-            
-            for (index, child) in filteredContents.enumerated() {
-                logger.info("  Child \(index + 1): \(child.url.lastPathComponent) (\(child.isDirectory ? "directory" : "file"))")
-            }
-            
-            var updatedItems = displayItems
-            updatedItems[itemIndex].children = filteredContents
-            
-            insertChildren(filteredContents, afterParentIndex: itemIndex, into: &updatedItems, parentDepth: item.depth)
-            
-            displayItems = updatedItems
-            forceViewUpdate()
         } catch {
             logger.warning("Failed to load directory \(item.url.lastPathComponent): \(error.localizedDescription)")
             
-            guard let itemIndex = displayItems.firstIndex(where: { $0.id == item.id }) else {
-                logger.warning("Could not find item to update: \(item.url.lastPathComponent)")
-                return
+            // Use DispatchQueue.main.async to ensure UI updates happen on the main thread
+            DispatchQueue.main.async {
+                // Check if the directory is still expanded before updating UI
+                if self.expandedItemIDs.contains(itemID) {
+                    guard let itemIndex = self.displayItems.firstIndex(where: { $0.id == itemID }) else {
+                        self.logger.warning("Could not find item to update: \(item.url.lastPathComponent)")
+                        return
+                    }
+                    
+                    var updatedItems = self.displayItems
+                    updatedItems[itemIndex].isAccessDenied = true
+                    updatedItems[itemIndex].children = []
+                    
+                    self.displayItems = updatedItems
+                    self.forceViewUpdate()
+                }
             }
-            
-            var updatedItems = displayItems
-            updatedItems[itemIndex].isAccessDenied = true
-            updatedItems[itemIndex].children = []
-            
-            displayItems = updatedItems
-            forceViewUpdate()
         }
     }
     
