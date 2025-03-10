@@ -1,6 +1,5 @@
 import SwiftUI
 import Observation
-import OSLog
 
 struct FileItem: Identifiable, Hashable {
     let id = UUID()
@@ -9,7 +8,7 @@ struct FileItem: Identifiable, Hashable {
     var children: [FileItem]?
     var isAccessDenied: Bool = false
     var depth: Int = 0
-    var containsMarkdownFiles: Bool = false // Track if this directory contains markdown files
+    var containsMarkdownFiles: Bool = false
     
     var isMarkdownFile: Bool {
         !isDirectory && url.pathExtension.lowercased() == "md"
@@ -27,9 +26,8 @@ struct FileItem: Identifiable, Hashable {
 struct FileExplorerView: View {
     @Bindable var viewModel: FolderSelectionViewModel
     @State private var displayItems: [FileItem] = []
-    @State private var expandedItemIDs: Set<UUID> = [] // Central state for tracking expanded items
+    @State private var expandedItemIDs: Set<UUID> = []
     @State private var viewUpdateCounter = 0
-    private let logger = Logger(subsystem: "com.yourcompany.trace", category: "FileExplorer")
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -44,7 +42,7 @@ struct FileExplorerView: View {
                     
                     ForEach(displayItems) { item in
                         singleFileRow(item)
-                            .contentShape(Rectangle()) // Ensure the entire row is clickable
+                            .contentShape(Rectangle())
                             .onTapGesture {
                                 if item.isDirectory {
                                     toggleDirectory(item)
@@ -52,10 +50,9 @@ struct FileExplorerView: View {
                             }
                     }
                 }
-                .listStyle(SidebarListStyle()) // Use sidebar style for better visual feedback
+                .listStyle(SidebarListStyle())
                 .id("list_\(viewUpdateCounter)")
                 .onAppear {
-                    logger.info("Loading root contents from \(folderURL.path)")
                     loadRootContents(from: folderURL)
                 }
             } else {
@@ -65,6 +62,15 @@ struct FileExplorerView: View {
             }
         }
         .frame(minWidth: 200, maxHeight: .infinity)
+        .onChange(of: viewModel.selectedFolderURL) { oldValue, newValue in
+            expandedItemIDs.removeAll()
+            if let folderURL = newValue, viewModel.isValidFolder {
+                loadRootContents(from: folderURL)
+            } else {
+                displayItems = []
+                forceViewUpdate()
+            }
+        }
     }
     
     private func singleFileRow(_ item: FileItem) -> some View {
@@ -96,31 +102,23 @@ struct FileExplorerView: View {
     }
     
     private func toggleDirectory(_ item: FileItem) {
-        logger.info("Toggling directory: \(item.url.lastPathComponent)")
-        
         guard let index = displayItems.firstIndex(where: { $0.id == item.id }) else {
-            logger.warning("Could not find item to toggle: \(item.url.lastPathComponent)")
             return
         }
         
         let isExpanded = expandedItemIDs.contains(item.id)
         
         if isExpanded {
-            logger.info("Collapsing directory: \(item.url.lastPathComponent)")
             expandedItemIDs.remove(item.id)
             removeChildren(of: item, from: &displayItems)
             forceViewUpdate()
         } else {
-            logger.info("Expanding directory: \(item.url.lastPathComponent)")
             expandedItemIDs.insert(item.id)
             
             if let children = displayItems[index].children {
-                logger.info("Using existing \(children.count) children for \(item.url.lastPathComponent)")
                 insertChildren(children, afterParentIndex: index, into: &displayItems, parentDepth: item.depth)
                 forceViewUpdate()
             } else {
-                // We need to load children
-                // Don't remove the expanded state during async operation
                 forceViewUpdate()
                 loadDirectoryContents(for: item)
             }
@@ -142,11 +140,10 @@ struct FileExplorerView: View {
         guard let parentIndex = items.firstIndex(where: { $0.id == parent.id }) else { return }
         
         let parentDepth = parent.depth
-        var indexToCheck = parentIndex + 1
+        let indexToCheck = parentIndex + 1
         
         while indexToCheck < items.count {
             if items[indexToCheck].depth > parentDepth {
-                // Also remove from expanded IDs if it's a directory
                 if items[indexToCheck].isDirectory {
                     expandedItemIDs.remove(items[indexToCheck].id)
                 }
@@ -159,12 +156,10 @@ struct FileExplorerView: View {
     
     private func forceViewUpdate() {
         viewUpdateCounter += 1
-        logger.info("Forcing view update with counter: \(viewUpdateCounter)")
     }
     
     private func loadRootContents(from url: URL) {
         guard viewModel.selectedFolderURL?.startAccessingSecurityScopedResource() == true else {
-            logger.error("Cannot access root folder with security scope")
             return
         }
         
@@ -175,18 +170,13 @@ struct FileExplorerView: View {
                 options: .skipsHiddenFiles
             )
             
-            logger.info("Successfully loaded root directory with \(contents.count) items")
-            
-            // First check which directories contain markdown files
-            var tempItems = sortURLs(contents).compactMap { url -> FileItem? in
+            let tempItems = sortURLs(contents).compactMap { url -> FileItem? in
                 let isDir = (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
                 let item = FileItem(url: url, isDirectory: isDir, depth: 0)
                 
                 if item.isMarkdownFile {
-                    // If this is a markdown file, include it
                     return item
                 } else if isDir {
-                    // For directories, check if they contain markdown files
                     let containsMD = directoryContainsMarkdownFiles(url)
                     if containsMD {
                         var dirItem = item
@@ -194,15 +184,13 @@ struct FileExplorerView: View {
                         return dirItem
                     }
                 }
-                return nil // Skip non-markdown files and directories without markdown
+                return nil
             }
             
-            logger.info("Filtered to \(tempItems.count) markdown-related items")
             displayItems = tempItems
             
             forceViewUpdate()
         } catch {
-            logger.error("Failed to load root directory: \(error.localizedDescription)")
             displayItems = []
         }
         
@@ -211,13 +199,9 @@ struct FileExplorerView: View {
     
     private func loadDirectoryContents(for item: FileItem) {
         guard item.isDirectory else { 
-            logger.info("Skipping directory load: Not a directory")
             return 
         }
         
-        logger.info("Loading contents for directory: \(item.url.lastPathComponent)")
-        
-        // Store the item ID we're currently loading
         let itemID = item.id
         
         do {
@@ -227,16 +211,13 @@ struct FileExplorerView: View {
                 options: .skipsHiddenFiles
             )
             
-            // Filter for markdown files and relevant directories
             let filteredContents = sortURLs(contents).compactMap { url -> FileItem? in
                 let isDir = (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
                 var newItem = FileItem(url: url, isDirectory: isDir, depth: item.depth + 1)
                 
                 if !isDir && url.pathExtension.lowercased() == "md" {
-                    // Keep markdown files
                     return newItem
                 } else if isDir {
-                    // Check if the directory contains any markdown files
                     let containsMD = directoryContainsMarkdownFiles(url)
                     if containsMD {
                         newItem.containsMarkdownFiles = true
@@ -244,22 +225,13 @@ struct FileExplorerView: View {
                     }
                 }
                 
-                return nil // Skip non-markdown files and directories without markdown
+                return nil
             }
             
-            logger.info("Directory \(item.url.lastPathComponent) filtered to \(filteredContents.count) markdown-related items")
-            
-            // Use DispatchQueue.main.async to ensure UI updates happen on the main thread
             DispatchQueue.main.async {
-                // Check if the directory is still expanded before updating UI
                 if self.expandedItemIDs.contains(itemID) {
                     guard let itemIndex = self.displayItems.firstIndex(where: { $0.id == itemID }) else {
-                        self.logger.warning("Could not find item to update: \(item.url.lastPathComponent)")
                         return
-                    }
-                    
-                    for (index, child) in filteredContents.enumerated() {
-                        self.logger.info("  Child \(index + 1): \(child.url.lastPathComponent) (\(child.isDirectory ? "directory" : "file"))")
                     }
                     
                     var updatedItems = self.displayItems
@@ -269,19 +241,12 @@ struct FileExplorerView: View {
                     
                     self.displayItems = updatedItems
                     self.forceViewUpdate()
-                } else {
-                    self.logger.info("Directory no longer expanded, skipping UI update for: \(item.url.lastPathComponent)")
                 }
             }
         } catch {
-            logger.warning("Failed to load directory \(item.url.lastPathComponent): \(error.localizedDescription)")
-            
-            // Use DispatchQueue.main.async to ensure UI updates happen on the main thread
             DispatchQueue.main.async {
-                // Check if the directory is still expanded before updating UI
                 if self.expandedItemIDs.contains(itemID) {
                     guard let itemIndex = self.displayItems.firstIndex(where: { $0.id == itemID }) else {
-                        self.logger.warning("Could not find item to update: \(item.url.lastPathComponent)")
                         return
                     }
                     
@@ -296,34 +261,27 @@ struct FileExplorerView: View {
         }
     }
     
-    // Helper function to check if a directory contains any markdown files
     private func directoryContainsMarkdownFiles(_ directoryURL: URL) -> Bool {
         do {
-            // First check direct child files
             let contents = try FileManager.default.contentsOfDirectory(
                 at: directoryURL,
                 includingPropertiesForKeys: [.isDirectoryKey],
                 options: .skipsHiddenFiles
             )
             
-            // Check for any markdown files in this directory
             for url in contents {
                 let isDir = (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
                 if !isDir && url.pathExtension.lowercased() == "md" {
                     return true
                 }
                 
-                // Recursively check subdirectories
-                if isDir {
-                    if directoryContainsMarkdownFiles(url) {
-                        return true
-                    }
+                if isDir && directoryContainsMarkdownFiles(url) {
+                    return true
                 }
             }
             
             return false
         } catch {
-            // In case of error, don't show the directory
             return false
         }
     }

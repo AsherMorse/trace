@@ -44,7 +44,7 @@ struct FolderSelectionView: View {
             viewModel.validateSelectedFolder()
             previousURL = viewModel.selectedFolderURL
         }
-        .onChange(of: viewModel.selectedFolderURL) { newURL in
+        .onChange(of: viewModel.selectedFolderURL) { oldURL, newURL in
             if let url = newURL,
                previousURL != url,
                viewModel.isValidFolder {
