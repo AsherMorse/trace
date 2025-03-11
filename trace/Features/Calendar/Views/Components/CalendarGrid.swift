@@ -12,7 +12,7 @@ struct CalendarGrid: View {
                 if let date = day.date {
                     DayCell(day: day) { onDateSelected(date) }
                 } else {
-                    Text("Empty")
+                    EmptyView()
                 }
             }
         }

@@ -2,10 +2,11 @@ import SwiftUI
 import AppKit
 
 @main
-struct TraceApp: App {
+struct traceApp: App {
     var body: some Scene {
         WindowGroup {
             AppCoordinatorView()
+                .frame(minHeight: 500)
         }
     }
 }

@@ -16,7 +16,8 @@ struct AppCoordinatorView: View {
                 }
             } else {
                 // Temporary until we have a main view
-                LegacyMainView(folderViewModel: folderViewModel)
+//                LegacyMainView(folderViewModel: folderViewModel)
+                ArchivedMainView()
             }
         }
         .onAppear {

@@ -18,7 +18,13 @@ struct CalendarView: View {
                 .frame(maxHeight: .infinity)
         }
         .background(Theme.backgroundFill)
-        .frame(minWidth: 320, maxWidth: 600, minHeight: 340, maxHeight: 340)
+        .frame(
+            minWidth: 320,
+            idealWidth: 320,
+            maxWidth: 600,
+            minHeight: 300,
+            maxHeight: 300
+        )
     }
 }
 
