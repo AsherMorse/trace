@@ -30,9 +30,9 @@ struct DayCell: View {
                         .foregroundColor(textColor)
                 }
             }
+            .frame(height: 36)
         }
         .buttonStyle(.plain)
-        .frame(height: 36)
         .contentShape(Rectangle())
         .onHover { isHovered = day.isInCurrentMonth ? $0 : false }
     }

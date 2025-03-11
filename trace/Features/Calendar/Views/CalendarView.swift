@@ -15,11 +15,10 @@ struct CalendarView: View {
                 .background(Theme.backgroundSecondary)
             
             CalendarGrid(days: model.days, onDateSelected: model.handleDateSelection)
-            
-            Spacer()
+                .frame(maxHeight: .infinity)
         }
-        .frame(minWidth: 320, minHeight: 420)
         .background(Theme.backgroundFill)
+        .frame(minWidth: 320, maxWidth: 600, minHeight: 340, maxHeight: 340)
     }
 }
 
@@ -27,7 +26,7 @@ struct CalendarView: View {
 struct CalendarView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            CalendarView().frame(width: 320, height: 420)
+            CalendarView()
         }
     }
 } 
