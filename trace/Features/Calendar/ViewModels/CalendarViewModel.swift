@@ -54,16 +54,6 @@ final class CalendarViewModel: ObservableObject {
     func changeMonth(by value: Int) {
         displayedMonth = calendar.date(byAdding: .month, value: value, to: displayedMonth) ?? displayedMonth
     }
-    
-    func handleDateSelection(_ date: Date) {
-        selectedDate = date
-        print("Selected date file path: \(generateFilePath(from: date))")
-    }
-    
-    func generateFilePath(from date: Date) -> String {
-        let c = calendar.dateComponents([.year, .month, .day], from: date)
-        return "\(c.year!)/\(c.month!)/\(c.day!).md"
-    }
 }
 
 // MARK: - Utilities

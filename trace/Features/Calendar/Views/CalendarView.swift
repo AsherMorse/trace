@@ -3,6 +3,11 @@ import SwiftUI
 // MARK: - Calendar View
 struct CalendarView: View {
     @StateObject private var model = CalendarViewModel()
+    var onDateSelected: ((Date) -> Void)?
+    
+    init(onDateSelected: ((Date) -> Void)? = nil) {
+        self.onDateSelected = onDateSelected
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -14,7 +19,13 @@ struct CalendarView: View {
             WeekdayHeader(weekdays: model.weekdaySymbols)
                 .background(Theme.backgroundSecondary)
             
-            CalendarGrid(days: model.days, onDateSelected: model.handleDateSelection)
+            CalendarGrid(days: model.days, onDateSelected: { date in
+                model.selectedDate = date
+                
+                if let callback = onDateSelected {
+                    callback(date)
+                }
+            })
                 .frame(maxHeight: .infinity)
         }
         .background(Theme.backgroundFill)
