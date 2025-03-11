@@ -199,7 +199,7 @@ class FileExplorerViewModel {
         guard let parentIndex = items.firstIndex(where: { $0.id == parent.id }) else { return }
         
         let parentDepth = parent.depth
-        var index = parentIndex + 1
+        let index = parentIndex + 1
         
         while index < items.count {
             let item = items[index]
@@ -265,10 +265,13 @@ class FileExplorerViewModel {
 
 struct FileExplorerView: View {
     @State private var viewModel: FileExplorerViewModel
+    var onFileSelected: ((URL) -> Void)?
+    var onViewModelCreated: ((FileExplorerViewModel) -> Void)?
     
-    init(viewModel: FolderSelectionViewModel) {
+    init(viewModel: FolderSelectionViewModel, onFileSelected: ((URL) -> Void)? = nil) {
         // Initialize our view model with the folder selection view model
         self._viewModel = State(initialValue: FileExplorerViewModel(folderViewModel: viewModel))
+        self.onFileSelected = onFileSelected
     }
     
     var body: some View {
@@ -284,6 +287,9 @@ struct FileExplorerView: View {
         .onChange(of: viewModel.selectedFolderURL) { _, _ in
             viewModel.folderDidChange()
         }
+        .onAppear {
+            onViewModelCreated?(viewModel)
+        }
     }
     
     @ViewBuilder
@@ -298,6 +304,8 @@ struct FileExplorerView: View {
                         .onTapGesture {
                             if item.isDirectory {
                                 viewModel.toggleDirectory(item)
+                            } else if item.isMarkdownFile {
+                                onFileSelected?(item.url)
                             }
                         }
                 }
@@ -339,5 +347,15 @@ struct FileExplorerView: View {
 struct FileExplorerView_Previews: PreviewProvider {
     static var previews: some View {
         FileExplorerView(viewModel: FolderSelectionViewModel())
+    }
+}
+
+// MARK: - Extensions
+
+extension FileExplorerView {
+    func onViewModelCreated(_ action: @escaping (FileExplorerViewModel) -> Void) -> Self {
+        var view = self
+        view.onViewModelCreated = action
+        return view
     }
 } 

@@ -15,7 +15,8 @@ struct AppCoordinatorView: View {
                     setupFolderValidationHandler()
                 }
             } else {
-                MainAppView(folderViewModel: folderViewModel)
+                // Temporary until we have a main view
+                LegacyMainView(folderViewModel: folderViewModel)
             }
         }
         .onAppear {
@@ -49,45 +50,5 @@ struct AppCoordinatorView: View {
                 hasCompletedOnboarding = true
             }
         }
-    }
-}
-
-// Temporary placeholder for the main app view
-struct MainAppView: View {
-    var folderViewModel: FolderSelectionViewModel
-    @State private var showFolderSettings = false
-    
-    var body: some View {
-        NavigationSplitView {
-            FileExplorerView(viewModel: folderViewModel)
-        } detail: {
-            VStack {
-                Text("Trace Journal")
-                    .font(.largeTitle)
-                    .padding()
-                Text("Journal folder: \(folderViewModel.displayPath)")
-                    .font(.callout)
-                    .padding()
-                Button("Change Journal Folder") {
-                    showFolderSettings = true
-                }
-                .padding()
-                Button("Reset Folder Selection") {
-                    FolderManager.shared.resetFolderSelection()
-                    folderViewModel.validateSelectedFolder()
-                }
-                .foregroundColor(.red)
-                .padding()
-            }
-            .sheet(isPresented: $showFolderSettings) {
-                FolderSelectionView(viewModel: folderViewModel)
-            }
-        }
-    }
-}
-
-struct AppCoordinatorView_Previews: PreviewProvider {
-    static var previews: some View {
-        AppCoordinatorView()
     }
 }
