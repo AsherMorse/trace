@@ -4,9 +4,13 @@ import SwiftUI
 struct CalendarView: View {
     @StateObject private var model = CalendarViewModel()
     var onDateSelected: ((Date) -> Void)?
+    var selectedDate: Date?
     
-    init(onDateSelected: ((Date) -> Void)? = nil) {
+    init(selectedDate: Date? = nil, onDateSelected: ((Date) -> Void)? = nil) {
+        self.selectedDate = selectedDate
         self.onDateSelected = onDateSelected
+        // Initialize a state object with the selectedDate
+        _model = StateObject(wrappedValue: CalendarViewModel(externalSelectedDate: selectedDate))
     }
     
     var body: some View {
@@ -36,6 +40,9 @@ struct CalendarView: View {
             minHeight: 300,
             maxHeight: 300
         )
+        .onChange(of: selectedDate) { _, newValue in
+            model.updateWithExternalDate(newValue)
+        }
     }
 }
 

@@ -1,11 +1,26 @@
 import Foundation
 
-enum JournalFileError: Error {
+enum JournalFileError: Error, LocalizedError {
     case folderNotSelected
     case accessDenied
     case fileNotFound
     case saveFailed
     case loadFailed
+    
+    var errorDescription: String? {
+        switch self {
+        case .folderNotSelected:
+            return "No journal folder has been selected"
+        case .accessDenied:
+            return "Access to the journal folder was denied"
+        case .fileNotFound:
+            return "The requested journal entry could not be found"
+        case .saveFailed:
+            return "Failed to save the journal entry"
+        case .loadFailed:
+            return "Failed to load the journal entry"
+        }
+    }
 }
 
 protocol JournalFileServiceProtocol {
@@ -20,32 +35,71 @@ class JournalFileService: JournalFileServiceProtocol {
     private let calendar = Calendar.current
     
     func getEntryURL(for date: Date) -> URL? {
-        // TODO: Generate file URL based on date using FolderManager.shared.selectedFolderURL
-        return nil
+        // Use the user-selected folder from FolderManager
+        guard let selectedFolder = FolderManager.shared.selectedFolderURL else {
+            return nil
+        }
+        
+        let components = formatDateComponents(from: date)
+        
+        let yearFolder = selectedFolder.appendingPathComponent(components.year)
+        let monthFolder = yearFolder.appendingPathComponent(components.month)
+        let fileURL = monthFolder.appendingPathComponent("\(components.day).md")
+        
+        return fileURL
     }
     
     func loadEntry(for date: Date) async throws -> String {
-        // TODO: Load file content from getEntryURL
-        return ""
+        guard let entryURL = getEntryURL(for: date) else {
+            throw JournalFileError.folderNotSelected
+        }
+        
+        guard fileManager.fileExists(atPath: entryURL.path) else {
+            throw JournalFileError.fileNotFound
+        }
+        
+        do {
+            return try String(contentsOf: entryURL, encoding: .utf8)
+        } catch {
+            throw JournalFileError.loadFailed
+        }
     }
     
     func saveEntry(_ content: String, for date: Date) async throws {
-        // TODO: Save content to file at getEntryURL
+        guard let entryURL = getEntryURL(for: date) else {
+            throw JournalFileError.folderNotSelected
+        }
+        
+        let directory = entryURL.deletingLastPathComponent()
+        
+        do {
+            // Create directory structure if needed
+            try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+            
+            // Write the content to the file
+            try content.write(to: entryURL, atomically: true, encoding: .utf8)
+        } catch {
+            throw JournalFileError.saveFailed
+        }
     }
     
     func entryExists(for date: Date) -> Bool {
-        // TODO: Check if file exists at getEntryURL
-        return false
+        guard let entryURL = getEntryURL(for: date) else {
+            return false
+        }
+        
+        return fileManager.fileExists(atPath: entryURL.path)
     }
     
     // MARK: - Private Methods
     
-    private func createDirectoryIfNeeded(for url: URL) throws {
-        // TODO: Create directory structure for file
-    }
-    
     private func formatDateComponents(from date: Date) -> (year: String, month: String, day: String) {
-        // TODO: Extract year, month, day from date
-        return ("", "", "")
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        
+        let year = String(format: "%04d", components.year ?? 2023)
+        let month = String(format: "%02d", components.month ?? 1)
+        let day = String(format: "%02d", components.day ?? 1)
+        
+        return (year, month, day)
     }
 } 
