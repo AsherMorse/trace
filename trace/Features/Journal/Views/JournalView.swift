@@ -5,7 +5,6 @@ struct JournalView: View {
     
     var body: some View {
         HSplitView {
-            // Left side with calendar and actions
             VStack(spacing: 0) {
                 CalendarView(
                     selectedDate: journalViewModel.selectedDate,
