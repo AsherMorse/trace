@@ -7,6 +7,7 @@ struct CreativityLearningView: View {
     @State private var mediaItems: [MediaItem] = []
     @State private var newMediaTitle: String = ""
     @State private var newMediaCreator: String = ""
+    @State private var newMediaNotes: String = ""
     @State private var newMediaStatus: MediaStatus = .notStarted
     @State private var showingAddMedia: Bool = false
     
@@ -45,6 +46,9 @@ struct CreativityLearningView: View {
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                             
                             TextField("Author/Creator", text: $newMediaCreator)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                            
+                            TextField("Notes", text: $newMediaNotes)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                             
                             Picker("Status: ", selection: $newMediaStatus) {
@@ -98,6 +102,7 @@ struct CreativityLearningView: View {
         let newItem = MediaItem(
             title: newMediaTitle,
             creator: newMediaCreator,
+            notes: newMediaNotes,
             status: newMediaStatus
         )
         mediaItems.append(newItem)
@@ -108,6 +113,7 @@ struct CreativityLearningView: View {
     private func resetNewMediaFields() {
         newMediaTitle = ""
         newMediaCreator = ""
+        newMediaNotes = ""
         newMediaStatus = .notStarted
     }
 }
@@ -116,6 +122,7 @@ struct MediaItem: Identifiable {
     let id = UUID()
     var title: String
     var creator: String
+    var notes: String
     var status: MediaStatus
 }
 
@@ -143,31 +150,40 @@ struct MediaItemRow: View {
     }
     
     var body: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(item.title)
-                    .font(.headline)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.title)
+                        .font(.headline)
+                    
+                    if !item.creator.isEmpty {
+                        Text(item.creator)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
                 
-                if !item.creator.isEmpty {
-                    Text(item.creator)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                Spacer()
+                
+                Picker("Status", selection: $status) {
+                    ForEach(MediaStatus.allCases, id: \.self) { status in
+                        Text(status.description).tag(status)
+                    }
+                }
+                .frame(maxWidth: 150)
+                .pickerStyle(MenuPickerStyle())
+                .onChange(of: status) { oldValue, newValue in
+                    var updatedItem = item
+                    updatedItem.status = newValue
+                    onUpdate(updatedItem)
                 }
             }
             
-            Spacer()
-            
-            Picker("Status", selection: $status) {
-                ForEach(MediaStatus.allCases, id: \.self) { status in
-                    Text(status.description).tag(status)
-                }
-            }
-            .frame(maxWidth: 150)
-            .pickerStyle(MenuPickerStyle())
-            .onChange(of: status) { oldValue, newValue in
-                var updatedItem = item
-                updatedItem.status = newValue
-                onUpdate(updatedItem)
+            if !item.notes.isEmpty {
+                Text(item.notes)
+                    .font(.body)
+                    .foregroundColor(.primary)
+                    .padding(.top, 2)
             }
         }
         .padding(8)
