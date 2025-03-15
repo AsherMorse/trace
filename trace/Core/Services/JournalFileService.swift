@@ -35,7 +35,6 @@ class JournalFileService: JournalFileServiceProtocol {
     private let calendar = Calendar.current
     
     func getEntryURL(for date: Date) -> URL? {
-        // Use the user-selected folder from FolderManager
         guard let selectedFolder = FolderManager.shared.selectedFolderURL else {
             return nil
         }
@@ -73,10 +72,8 @@ class JournalFileService: JournalFileServiceProtocol {
         let directory = entryURL.deletingLastPathComponent()
         
         do {
-            // Create directory structure if needed
             try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
             
-            // Write the content to the file
             try content.write(to: entryURL, atomically: true, encoding: .utf8)
         } catch {
             throw JournalFileError.saveFailed

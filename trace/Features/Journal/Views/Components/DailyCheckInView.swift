@@ -1,9 +1,22 @@
 import SwiftUI
 
 struct DailyCheckInView: View {
-    @State private var selectedMood: String = "Good"
-    @State private var dailyHighlight: String = ""
-    @State private var dailyOverview: String = ""
+    @Bindable var viewModel: JournalViewModel
+    @State private var selectedMood: String = "Good" {
+        didSet {
+            updateViewModel()
+        }
+    }
+    @State private var dailyHighlight: String = "" {
+        didSet {
+            updateViewModel()
+        }
+    }
+    @State private var dailyOverview: String = "" {
+        didSet {
+            updateViewModel()
+        }
+    }
     @FocusState private var isTextFieldFocused: Bool
     
     private let moodOptions = ["Great", "Good", "Neutral", "Tired", "Stressed", "Upset"]
@@ -45,6 +58,9 @@ struct DailyCheckInView: View {
                         .background(Color(NSColor.textBackgroundColor))
                         .cornerRadius(8)
                         .focused($isTextFieldFocused)
+                        .onChange(of: dailyHighlight) { _, newValue in
+                            updateViewModel()
+                        }
                 }
                 
                 JournalTextEditor(
@@ -52,14 +68,40 @@ struct DailyCheckInView: View {
                     text: $dailyOverview
                 )
                 .frame(minHeight: 150)
+                .onChange(of: dailyOverview) { _, newValue in
+                    updateViewModel()
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                // Load data from viewModel when view appears
+                loadFromViewModel()
+            }
+        }
+    }
+    
+    private func updateViewModel() {
+        // Create a JournalEntry with updated values and convert to markdown
+        var entry = viewModel.currentEntry ?? JournalEntry(date: viewModel.selectedDate ?? Date())
+        entry.dailyCheckIn.mood = selectedMood
+        entry.dailyCheckIn.todaysHighlight = dailyHighlight
+        entry.dailyCheckIn.dailyOverview = dailyOverview
+        
+        // Update the viewModel's editedContent with new markdown
+        viewModel.updateEntrySection(entry)
+    }
+    
+    private func loadFromViewModel() {
+        if let entry = viewModel.currentEntry {
+            selectedMood = entry.dailyCheckIn.mood.isEmpty ? "Good" : entry.dailyCheckIn.mood
+            dailyHighlight = entry.dailyCheckIn.todaysHighlight
+            dailyOverview = entry.dailyCheckIn.dailyOverview
         }
     }
 }
 
 #Preview {
-    DailyCheckInView()
+    DailyCheckInView(viewModel: JournalViewModel())
         .frame(width: 600)
         .padding()
 } 

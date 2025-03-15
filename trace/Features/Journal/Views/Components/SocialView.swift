@@ -1,9 +1,22 @@
 import SwiftUI
 
 struct SocialView: View {
-    @State private var relationshipUpdates: String = ""
-    @State private var socialEvents: String = ""
-    @State private var interactions: [Interaction] = []
+    @Bindable var viewModel: JournalViewModel
+    @State private var relationshipUpdates: String = "" {
+        didSet {
+            updateViewModel()
+        }
+    }
+    @State private var socialEvents: String = "" {
+        didSet {
+            updateViewModel()
+        }
+    }
+    @State private var interactions: [Interaction] = [] {
+        didSet {
+            updateViewModel()
+        }
+    }
     @State private var newInteractionPerson: String = ""
     @State private var newInteractionNotes: String = ""
     @State private var showingAddInteraction: Bool = false
@@ -63,14 +76,23 @@ struct SocialView: View {
                     text: $relationshipUpdates
                 )
                 .frame(minHeight: 100)
+                .onChange(of: relationshipUpdates) { _, _ in
+                    updateViewModel()
+                }
                 
                 JournalTextEditor(
                     title: "Social Events",
                     text: $socialEvents
                 )
                 .frame(minHeight: 100)
+                .onChange(of: socialEvents) { _, _ in
+                    updateViewModel()
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                loadFromViewModel()
+            }
         }
     }
     
@@ -82,11 +104,48 @@ struct SocialView: View {
         interactions.append(interaction)
         showingAddInteraction = false
         resetNewInteractionFields()
+        updateViewModel()
     }
     
     private func resetNewInteractionFields() {
         newInteractionPerson = ""
         newInteractionNotes = ""
+    }
+    
+    private func updateViewModel() {
+        // Create a JournalEntry with updated values and convert to markdown
+        var entry = viewModel.currentEntry ?? JournalEntry(date: viewModel.selectedDate ?? Date())
+        
+        // Convert Interactions to JournalInteractions
+        let journalInteractions = interactions.map { interaction -> JournalInteraction in
+            return JournalInteraction(
+                person: interaction.person,
+                notes: interaction.notes
+            )
+        }
+        
+        // Update the entry
+        entry.social.meaningfulInteractions = journalInteractions
+        entry.social.relationshipUpdates = relationshipUpdates
+        entry.social.socialEvents = socialEvents
+        
+        // Update the viewModel's editedContent with new markdown
+        viewModel.updateEntrySection(entry)
+    }
+    
+    private func loadFromViewModel() {
+        if let entry = viewModel.currentEntry {
+            relationshipUpdates = entry.social.relationshipUpdates
+            socialEvents = entry.social.socialEvents
+            
+            // Convert JournalInteractions to Interactions
+            interactions = entry.social.meaningfulInteractions.map { item -> Interaction in
+                return Interaction(
+                    person: item.person,
+                    notes: item.notes
+                )
+            }
+        }
     }
 }
 
@@ -118,7 +177,7 @@ struct InteractionRow: View {
 }
 
 #Preview {
-    SocialView()
+    SocialView(viewModel: JournalViewModel())
         .frame(width: 600)
         .padding()
 } 

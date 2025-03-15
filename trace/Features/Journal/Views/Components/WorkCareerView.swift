@@ -1,11 +1,32 @@
 import SwiftUI
 
 struct WorkCareerView: View {
-    @State private var workItems: [WorkItem] = []
-    @State private var meetings: [Meeting] = []
-    @State private var challenges: String = ""
-    @State private var wins: String = ""
-    @State private var workIdeas: String = ""
+    @Bindable var viewModel: JournalViewModel
+    @State private var workItems: [WorkItem] = [] {
+        didSet {
+            updateViewModel()
+        }
+    }
+    @State private var meetings: [Meeting] = [] {
+        didSet {
+            updateViewModel()
+        }
+    }
+    @State private var challenges: String = "" {
+        didSet {
+            updateViewModel()
+        }
+    }
+    @State private var wins: String = "" {
+        didSet {
+            updateViewModel()
+        }
+    }
+    @State private var workIdeas: String = "" {
+        didSet {
+            updateViewModel()
+        }
+    }
     
     // Work Item States
     @State private var showingAddWorkItem: Bool = false
@@ -34,6 +55,7 @@ struct WorkCareerView: View {
                             WorkItemRow(item: item) { updatedItem in
                                 if let index = workItems.firstIndex(where: { $0.id == updatedItem.id }) {
                                     workItems[index] = updatedItem
+                                    updateViewModel()
                                 }
                             }
                         }
@@ -151,20 +173,32 @@ struct WorkCareerView: View {
                     text: $challenges
                 )
                 .frame(minHeight: 100)
+                .onChange(of: challenges) { _, _ in
+                    updateViewModel()
+                }
                 
                 JournalTextEditor(
                     title: "Wins",
                     text: $wins
                 )
                 .frame(minHeight: 100)
+                .onChange(of: wins) { _, _ in
+                    updateViewModel()
+                }
                 
                 JournalTextEditor(
                     title: "Work Ideas",
                     text: $workIdeas
                 )
                 .frame(minHeight: 100)
+                .onChange(of: workIdeas) { _, _ in
+                    updateViewModel()
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                loadFromViewModel()
+            }
         }
     }
     
@@ -178,6 +212,7 @@ struct WorkCareerView: View {
         workItems.append(workItem)
         showingAddWorkItem = false
         resetNewWorkItemFields()
+        updateViewModel()
     }
     
     private func resetNewWorkItemFields() {
@@ -197,6 +232,7 @@ struct WorkCareerView: View {
         meetings.append(meeting)
         showingAddMeeting = false
         resetNewMeetingFields()
+        updateViewModel()
     }
     
     private func resetNewMeetingFields() {
@@ -204,6 +240,69 @@ struct WorkCareerView: View {
         newMeetingAttendees = ""
         newMeetingNotes = ""
         newMeetingActionItems = ""
+    }
+    
+    private func updateViewModel() {
+        // Create a JournalEntry with updated values and convert to markdown
+        var entry = viewModel.currentEntry ?? JournalEntry(date: viewModel.selectedDate ?? Date())
+        
+        // Convert WorkItems to JournalWorkItems
+        let journalWorkItems = workItems.map { item -> JournalWorkItem in
+            return JournalWorkItem(
+                title: item.title,
+                status: item.status.rawValue,
+                priority: item.priority.rawValue,
+                description: item.description
+            )
+        }
+        
+        // Convert Meetings to JournalMeetings
+        let journalMeetings = meetings.map { meeting -> JournalMeeting in
+            return JournalMeeting(
+                title: meeting.title,
+                attendees: meeting.attendees,
+                notes: meeting.notes,
+                actionItems: meeting.actionItems
+            )
+        }
+        
+        // Update the entry
+        entry.workCareer.workItems = journalWorkItems
+        entry.workCareer.meetings = journalMeetings
+        entry.workCareer.challenges = challenges
+        entry.workCareer.wins = wins
+        entry.workCareer.workIdeas = workIdeas
+        
+        // Update the viewModel's editedContent with new markdown
+        viewModel.updateEntrySection(entry)
+    }
+    
+    private func loadFromViewModel() {
+        if let entry = viewModel.currentEntry {
+            challenges = entry.workCareer.challenges
+            wins = entry.workCareer.wins
+            workIdeas = entry.workCareer.workIdeas
+            
+            // Convert JournalWorkItems to WorkItems
+            workItems = entry.workCareer.workItems.map { item -> WorkItem in
+                return WorkItem(
+                    title: item.title,
+                    description: item.description,
+                    status: WorkItemStatus(rawValue: item.status) ?? .todo,
+                    priority: WorkItemPriority(rawValue: item.priority) ?? .medium
+                )
+            }
+            
+            // Convert JournalMeetings to Meetings
+            meetings = entry.workCareer.meetings.map { meeting -> Meeting in
+                return Meeting(
+                    title: meeting.title,
+                    attendees: meeting.attendees,
+                    notes: meeting.notes,
+                    actionItems: meeting.actionItems
+                )
+            }
+        }
     }
 }
 
@@ -380,7 +479,7 @@ struct MeetingRow: View {
 }
 
 #Preview {
-    WorkCareerView()
+    WorkCareerView(viewModel: JournalViewModel())
         .frame(width: 600)
         .padding()
 }

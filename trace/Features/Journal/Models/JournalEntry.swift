@@ -38,12 +38,61 @@ struct JournalEntry {
     
     init?(fromMarkdown markdown: String, date: Date) {
         self.date = date
+        
         self.dailyCheckIn = JournalDailyCheckIn()
         self.personalGrowth = JournalPersonalGrowth()
         self.wellbeing = JournalWellbeing()
         self.creativityLearning = JournalCreativityLearning()
         self.social = JournalSocial()
         self.workCareer = JournalWorkCareer()
+        
+        let sections = splitIntoSections(markdown)
+        
+        for (sectionTitle, sectionContent) in sections {
+            switch sectionTitle {
+            case "Daily Check-in":
+                self.dailyCheckIn = JournalDailyCheckIn.fromMarkdown(sectionContent)
+            case "Personal Growth":
+                self.personalGrowth = JournalPersonalGrowth.fromMarkdown(sectionContent)
+            case "Wellbeing":
+                self.wellbeing = JournalWellbeing.fromMarkdown(sectionContent)
+            case "Creativity & Learning":
+                self.creativityLearning = JournalCreativityLearning.fromMarkdown(sectionContent)
+            case "Social":
+                self.social = JournalSocial.fromMarkdown(sectionContent)
+            case "Work & Career":
+                self.workCareer = JournalWorkCareer.fromMarkdown(sectionContent)
+            default:
+                break
+            }
+        }
+    }
+    
+    private func splitIntoSections(_ markdown: String) -> [(String, String)] {
+        var sections: [(String, String)] = []
+        let lines = markdown.components(separatedBy: .newlines)
+        
+        var currentSectionTitle: String? = nil
+        var currentSectionContent: [String] = []
+        
+        for line in lines {
+            if line.hasPrefix("## ") {
+                if let title = currentSectionTitle, !currentSectionContent.isEmpty {
+                    sections.append((title, currentSectionContent.joined(separator: "\n")))
+                    currentSectionContent = []
+                }
+                
+                currentSectionTitle = line.replacingOccurrences(of: "## ", with: "")
+            } else if currentSectionTitle != nil {
+                currentSectionContent.append(line)
+            }
+        }
+        
+        if let title = currentSectionTitle, !currentSectionContent.isEmpty {
+            sections.append((title, currentSectionContent.joined(separator: "\n")))
+        }
+        
+        return sections
     }
     
     func toMarkdown() -> String {
@@ -91,6 +140,26 @@ struct JournalDailyCheckIn {
         
         return markdown
     }
+    
+    static func fromMarkdown(_ markdown: String) -> JournalDailyCheckIn {
+        var dailyCheckIn = JournalDailyCheckIn()
+        let subsections = parseSubsections(markdown)
+        
+        for (title, content) in subsections {
+            switch title {
+            case "Mood":
+                dailyCheckIn.mood = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Today's Highlight":
+                dailyCheckIn.todaysHighlight = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Daily Overview":
+                dailyCheckIn.dailyOverview = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            default:
+                break
+            }
+        }
+        
+        return dailyCheckIn
+    }
 }
 
 struct JournalPersonalGrowth {
@@ -116,6 +185,28 @@ struct JournalPersonalGrowth {
         
         return markdown
     }
+    
+    static func fromMarkdown(_ markdown: String) -> JournalPersonalGrowth {
+        var personalGrowth = JournalPersonalGrowth()
+        let subsections = parseSubsections(markdown)
+        
+        for (title, content) in subsections {
+            switch title {
+            case "Reflections":
+                personalGrowth.reflections = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Achievements":
+                personalGrowth.achievements = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Challenges":
+                personalGrowth.challenges = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Goals":
+                personalGrowth.goals = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            default:
+                break
+            }
+        }
+        
+        return personalGrowth
+    }
 }
 
 struct JournalWellbeing {
@@ -136,6 +227,28 @@ struct JournalWellbeing {
         markdown += "\(mentalHealth)\n\n"
         
         return markdown
+    }
+    
+    static func fromMarkdown(_ markdown: String) -> JournalWellbeing {
+        var wellbeing = JournalWellbeing()
+        let subsections = parseSubsections(markdown)
+        
+        for (title, content) in subsections {
+            switch title {
+            case "Energy Level":
+                let numberString = content.replacingOccurrences(of: "/10", with: "")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                wellbeing.energyLevel = Int(numberString) ?? 5
+            case "Physical Activity":
+                wellbeing.physicalActivity = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Mental Health":
+                wellbeing.mentalHealth = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            default:
+                break
+            }
+        }
+        
+        return wellbeing
     }
 }
 
@@ -164,6 +277,68 @@ struct JournalCreativityLearning {
         markdown += "\(projects)\n\n"
         
         return markdown
+    }
+    
+    static func fromMarkdown(_ markdown: String) -> JournalCreativityLearning {
+        var creativityLearning = JournalCreativityLearning()
+        let subsections = parseSubsections(markdown)
+        
+        for (title, content) in subsections {
+            switch title {
+            case "Ideas":
+                creativityLearning.ideas = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Learning Log":
+                creativityLearning.learningLog = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Books & Media":
+                creativityLearning.booksMedia = parseMediaItems(content)
+            case "Projects":
+                creativityLearning.projects = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            default:
+                break
+            }
+        }
+        
+        return creativityLearning
+    }
+    
+    private static func parseMediaItems(_ content: String) -> [JournalMediaItem] {
+        var items: [JournalMediaItem] = []
+        let lines = content.components(separatedBy: .newlines)
+        
+        var currentItem: JournalMediaItem?
+        var currentTitle = ""
+        
+        for line in lines {
+            let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+            
+            if trimmedLine.hasPrefix("#### ") {
+                if let item = currentItem {
+                    items.append(item)
+                }
+                
+                currentItem = JournalMediaItem()
+                currentTitle = trimmedLine.replacingOccurrences(of: "#### ", with: "")
+                currentItem?.title = currentTitle
+            } else if currentItem != nil {
+                var updatedItem = currentItem!
+                
+                if trimmedLine.hasPrefix("Creator: ") {
+                    updatedItem.creator = trimmedLine.replacingOccurrences(of: "Creator: ", with: "")
+                } else if trimmedLine.hasPrefix("Status: ") {
+                    updatedItem.status = trimmedLine.replacingOccurrences(of: "Status: ", with: "")
+                } else if trimmedLine.hasPrefix("Notes: ") {
+                    updatedItem.notes = trimmedLine.replacingOccurrences(of: "Notes: ", with: "")
+                }
+                
+                currentItem = updatedItem
+            }
+        }
+        
+        if let item = currentItem {
+            items.append(item)
+        }
+        
+        return items
     }
 }
 
@@ -203,6 +378,62 @@ struct JournalSocial {
         markdown += "\(socialEvents)\n\n"
         
         return markdown
+    }
+    
+    static func fromMarkdown(_ markdown: String) -> JournalSocial {
+        var social = JournalSocial()
+        let subsections = parseSubsections(markdown)
+        
+        for (title, content) in subsections {
+            switch title {
+            case "Meaningful Interactions":
+                social.meaningfulInteractions = parseInteractions(content)
+            case "Relationship Updates":
+                social.relationshipUpdates = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Social Events":
+                social.socialEvents = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            default:
+                break
+            }
+        }
+        
+        return social
+    }
+    
+    private static func parseInteractions(_ content: String) -> [JournalInteraction] {
+        var interactions: [JournalInteraction] = []
+        let lines = content.components(separatedBy: .newlines)
+        
+        var currentInteraction: JournalInteraction?
+        var currentPerson = ""
+        
+        for line in lines {
+            let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+            
+            if trimmedLine.hasPrefix("#### ") {
+                if let interaction = currentInteraction {
+                    interactions.append(interaction)
+                }
+                
+                currentInteraction = JournalInteraction()
+                currentPerson = trimmedLine.replacingOccurrences(of: "#### ", with: "")
+                currentInteraction?.person = currentPerson
+            } else if currentInteraction != nil {
+                var updatedInteraction = currentInteraction!
+                
+                if trimmedLine.hasPrefix("Notes: ") {
+                    updatedInteraction.notes = trimmedLine.replacingOccurrences(of: "Notes: ", with: "")
+                }
+                
+                currentInteraction = updatedInteraction
+            }
+        }
+        
+        if let interaction = currentInteraction {
+            interactions.append(interaction)
+        }
+        
+        return interactions
     }
 }
 
@@ -250,6 +481,113 @@ struct JournalWorkCareer {
         
         return markdown
     }
+    
+    static func fromMarkdown(_ markdown: String) -> JournalWorkCareer {
+        var workCareer = JournalWorkCareer()
+        let subsections = parseSubsections(markdown)
+        
+        for (title, content) in subsections {
+            switch title {
+            case "Work Items":
+                workCareer.workItems = parseWorkItems(content)
+            case "Meetings":
+                workCareer.meetings = parseMeetings(content)
+            case "Challenges":
+                workCareer.challenges = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Wins":
+                workCareer.wins = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Work Ideas":
+                workCareer.workIdeas = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            default:
+                break
+            }
+        }
+        
+        return workCareer
+    }
+    
+    private static func parseWorkItems(_ content: String) -> [JournalWorkItem] {
+        var workItems: [JournalWorkItem] = []
+        let lines = content.components(separatedBy: .newlines)
+        
+        var currentItem: JournalWorkItem?
+        
+        for line in lines {
+            let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+            
+            if trimmedLine.hasPrefix("#### ") {
+                if let item = currentItem {
+                    workItems.append(item)
+                }
+                
+                currentItem = JournalWorkItem()
+                
+                let headerContent = trimmedLine.replacingOccurrences(of: "#### ", with: "")
+                let components = headerContent.components(separatedBy: " - ")
+                
+                var newItem = JournalWorkItem()
+                if components.count >= 1 {
+                    newItem.title = components[0]
+                }
+                if components.count >= 2 {
+                    newItem.status = components[1]
+                }
+                if components.count >= 3 {
+                    newItem.priority = components[2]
+                }
+                
+                currentItem = newItem
+            } else if currentItem != nil && !trimmedLine.isEmpty {
+                var updatedItem = currentItem!
+                updatedItem.description = trimmedLine
+                currentItem = updatedItem
+            }
+        }
+        
+        if let item = currentItem {
+            workItems.append(item)
+        }
+        
+        return workItems
+    }
+    
+    private static func parseMeetings(_ content: String) -> [JournalMeeting] {
+        var meetings: [JournalMeeting] = []
+        let lines = content.components(separatedBy: .newlines)
+        
+        var currentMeeting: JournalMeeting?
+        
+        for line in lines {
+            let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+            
+            if trimmedLine.hasPrefix("#### ") {
+                if let meeting = currentMeeting {
+                    meetings.append(meeting)
+                }
+                
+                currentMeeting = JournalMeeting()
+                currentMeeting?.title = trimmedLine.replacingOccurrences(of: "#### ", with: "")
+            } else if currentMeeting != nil {
+                var updatedMeeting = currentMeeting!
+                
+                if trimmedLine.hasPrefix("Attendees: ") {
+                    updatedMeeting.attendees = trimmedLine.replacingOccurrences(of: "Attendees: ", with: "")
+                } else if trimmedLine.hasPrefix("Notes: ") {
+                    updatedMeeting.notes = trimmedLine.replacingOccurrences(of: "Notes: ", with: "")
+                } else if trimmedLine.hasPrefix("Action Items: ") {
+                    updatedMeeting.actionItems = trimmedLine.replacingOccurrences(of: "Action Items: ", with: "")
+                }
+                
+                currentMeeting = updatedMeeting
+            }
+        }
+        
+        if let meeting = currentMeeting {
+            meetings.append(meeting)
+        }
+        
+        return meetings
+    }
 }
 
 struct JournalWorkItem {
@@ -278,4 +616,33 @@ struct JournalMeeting {
         markdown += "    Action Items: \(actionItems)\n\n"
         return markdown
     }
+}
+
+// MARK: - Parsing Helpers
+
+private func parseSubsections(_ markdown: String) -> [(String, String)] {
+    var subsections: [(String, String)] = []
+    let lines = markdown.components(separatedBy: .newlines)
+    
+    var currentSubsectionTitle: String? = nil
+    var currentSubsectionContent: [String] = []
+    
+    for line in lines {
+        if line.hasPrefix("### ") {
+            if let title = currentSubsectionTitle, !currentSubsectionContent.isEmpty {
+                subsections.append((title, currentSubsectionContent.joined(separator: "\n")))
+                currentSubsectionContent = []
+            }
+            
+            currentSubsectionTitle = line.replacingOccurrences(of: "### ", with: "")
+        } else if currentSubsectionTitle != nil {
+            currentSubsectionContent.append(line)
+        }
+    }
+    
+    if let title = currentSubsectionTitle, !currentSubsectionContent.isEmpty {
+        subsections.append((title, currentSubsectionContent.joined(separator: "\n")))
+    }
+    
+    return subsections
 }

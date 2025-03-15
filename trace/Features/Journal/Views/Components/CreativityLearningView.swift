@@ -1,10 +1,27 @@
 import SwiftUI
 
 struct CreativityLearningView: View {
-    @State private var ideas: String = ""
-    @State private var learningLog: String = ""
-    @State private var projects: String = ""
-    @State private var mediaItems: [MediaItem] = []
+    @Bindable var viewModel: JournalViewModel
+    @State private var ideas: String = "" {
+        didSet {
+            updateViewModel()
+        }
+    }
+    @State private var learningLog: String = "" {
+        didSet {
+            updateViewModel()
+        }
+    }
+    @State private var projects: String = "" {
+        didSet {
+            updateViewModel()
+        }
+    }
+    @State private var mediaItems: [MediaItem] = [] {
+        didSet {
+            updateViewModel()
+        }
+    }
     @State private var newMediaTitle: String = ""
     @State private var newMediaCreator: String = ""
     @State private var newMediaNotes: String = ""
@@ -19,12 +36,18 @@ struct CreativityLearningView: View {
                     text: $ideas
                 )
                 .frame(minHeight: 100)
+                .onChange(of: ideas) { _, _ in
+                    updateViewModel()
+                }
                 
                 JournalTextEditor(
                     title: "Learning Log",
                     text: $learningLog
                 )
                 .frame(minHeight: 100)
+                .onChange(of: learningLog) { _, _ in
+                    updateViewModel()
+                }
                 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Books & Media")
@@ -35,6 +58,7 @@ struct CreativityLearningView: View {
                             MediaItemRow(item: item) { updatedItem in
                                 if let index = mediaItems.firstIndex(where: { $0.id == updatedItem.id }) {
                                     mediaItems[index] = updatedItem
+                                    updateViewModel()
                                 }
                             }
                         }
@@ -93,8 +117,14 @@ struct CreativityLearningView: View {
                     text: $projects
                 )
                 .frame(minHeight: 100)
+                .onChange(of: projects) { _, _ in
+                    updateViewModel()
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear {
+                loadFromViewModel()
+            }
         }
     }
     
@@ -108,6 +138,7 @@ struct CreativityLearningView: View {
         mediaItems.append(newItem)
         showingAddMedia = false
         resetNewMediaFields()
+        updateViewModel()
     }
     
     private func resetNewMediaFields() {
@@ -115,6 +146,56 @@ struct CreativityLearningView: View {
         newMediaCreator = ""
         newMediaNotes = ""
         newMediaStatus = .notStarted
+    }
+    
+    private func updateViewModel() {
+        // Create a JournalEntry with updated values and convert to markdown
+        var entry = viewModel.currentEntry ?? JournalEntry(date: viewModel.selectedDate ?? Date())
+        
+        // Convert MediaItems to JournalMediaItems
+        let journalMediaItems = mediaItems.map { item -> JournalMediaItem in
+            return JournalMediaItem(
+                title: item.title,
+                creator: item.creator,
+                status: convertMediaStatus(item.status),
+                notes: item.notes
+            )
+        }
+        
+        // Update the entry
+        entry.creativityLearning.ideas = ideas
+        entry.creativityLearning.learningLog = learningLog
+        entry.creativityLearning.booksMedia = journalMediaItems
+        entry.creativityLearning.projects = projects
+        
+        // Update the viewModel's editedContent with new markdown
+        viewModel.updateEntrySection(entry)
+    }
+    
+    private func loadFromViewModel() {
+        if let entry = viewModel.currentEntry {
+            ideas = entry.creativityLearning.ideas
+            learningLog = entry.creativityLearning.learningLog
+            projects = entry.creativityLearning.projects
+            
+            // Convert JournalMediaItems to MediaItems
+            mediaItems = entry.creativityLearning.booksMedia.map { item -> MediaItem in
+                return MediaItem(
+                    title: item.title,
+                    creator: item.creator,
+                    notes: item.notes,
+                    status: convertJournalMediaStatus(item.status)
+                )
+            }
+        }
+    }
+    
+    private func convertMediaStatus(_ status: MediaStatus) -> String {
+        return status.rawValue
+    }
+    
+    private func convertJournalMediaStatus(_ status: String) -> MediaStatus {
+        return MediaStatus.allCases.first { $0.rawValue == status } ?? .notStarted
     }
 }
 
@@ -193,7 +274,7 @@ struct MediaItemRow: View {
 }
 
 #Preview {
-    CreativityLearningView()
+    CreativityLearningView(viewModel: JournalViewModel())
         .frame(width: 600)
         .padding()
 }
