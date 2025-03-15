@@ -9,7 +9,7 @@ struct JournalView: View {
                 CalendarView(
                     selectedDate: journalViewModel.selectedDate,
                     onDateSelected: { date in
-                        print("📆 Date selected in calendar: \(date)")
+                        print("Date selected in calendar: \(date)")
                         journalViewModel.selectedDate = date
                     }
                 )

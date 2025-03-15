@@ -20,40 +20,22 @@ struct JournalContentView: View {
                             VStack(spacing: 20) {
                                 switch selectedTab {
                                 case .dailyCheckIn:
-                                    SectionContainer {
-                                        Text("Daily Check-in Content")
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
+                                    DailyCheckInView()
                                     
                                 case .personalGrowth:
-                                    SectionContainer {
-                                        Text("Personal Growth Content")
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
+                                    PersonalGrowthView()
                                     
                                 case .wellbeing:
-                                    SectionContainer {
-                                        Text("Well-being Content")
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
+                                    WellbeingView()
                                     
                                 case .creativityLearning:
-                                    SectionContainer {
-                                        Text("Creativity & Learning Content")
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
+                                    CreativityLearningView()
                                     
                                 case .social:
-                                    SectionContainer {
-                                        Text("Social Content")
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
+                                    SocialView()
                                     
                                 case .workCareer:
-                                    SectionContainer {
-                                        Text("Work & Career Content")
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
+                                    WorkCareerView()
                                 }
                             }
                             .padding(EdgeInsets(top: 0, leading: 8, bottom: 8, trailing: 8))
