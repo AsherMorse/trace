@@ -29,6 +29,11 @@ class JournalViewModel {
     
     // MARK: - Public Methods
     
+    // Added this method to get entry URL without exposing fileService
+    func getEntryURL(for date: Date) -> URL? {
+        return fileService.getEntryURL(for: date)
+    }
+    
     // MARK: Formatting
     
     func formatDate(_ date: Date) -> String {
