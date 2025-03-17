@@ -7,7 +7,6 @@ struct SectionTabBar: View {
         ZStack {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(NSColor.controlBackgroundColor).opacity(0.8))
-//                .padding(-8)
             
             HStack(spacing: 2) {
                 ForEach(JournalSection.allCases) { section in

@@ -119,7 +119,6 @@ struct JournalEntry {
     }
 }
 
-// MARK: - Section Models
 
 struct JournalDailyCheckIn {
     var mood: String = ""
@@ -618,7 +617,6 @@ struct JournalMeeting {
     }
 }
 
-// MARK: - Parsing Helpers
 
 private func parseSubsections(_ markdown: String) -> [(String, String)] {
     var subsections: [(String, String)] = []

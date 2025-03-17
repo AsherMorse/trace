@@ -113,23 +113,18 @@ struct SocialView: View {
     }
     
     private func updateViewModel() {
-        // Create a JournalEntry with updated values and convert to markdown
         var entry = viewModel.currentEntry ?? JournalEntry(date: viewModel.selectedDate ?? Date())
         
-        // Convert Interactions to JournalInteractions
         let journalInteractions = interactions.map { interaction -> JournalInteraction in
             return JournalInteraction(
                 person: interaction.person,
                 notes: interaction.notes
             )
         }
-        
-        // Update the entry
         entry.social.meaningfulInteractions = journalInteractions
         entry.social.relationshipUpdates = relationshipUpdates
         entry.social.socialEvents = socialEvents
         
-        // Update the viewModel's editedContent with new markdown
         viewModel.updateEntrySection(entry)
     }
     
@@ -138,7 +133,6 @@ struct SocialView: View {
             relationshipUpdates = entry.social.relationshipUpdates
             socialEvents = entry.social.socialEvents
             
-            // Convert JournalInteractions to Interactions
             interactions = entry.social.meaningfulInteractions.map { item -> Interaction in
                 return Interaction(
                     person: item.person,
@@ -180,4 +174,4 @@ struct InteractionRow: View {
     SocialView(viewModel: JournalViewModel())
         .frame(width: 600)
         .padding()
-} 
+}

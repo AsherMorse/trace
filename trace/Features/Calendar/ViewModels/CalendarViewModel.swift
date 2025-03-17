@@ -1,6 +1,5 @@
 import SwiftUI
 
-// MARK: - View Model
 final class CalendarViewModel: ObservableObject {
     @Published var selectedDate = Date()
     @Published var displayedMonth = Date()
@@ -9,23 +8,19 @@ final class CalendarViewModel: ObservableObject {
     private let dateFormatter = DateFormatter().with { $0.dateFormat = "MMMM yyyy" }
     
     init(externalSelectedDate: Date? = nil) {
-        // Initialize with external date if provided
         if let externalDate = externalSelectedDate {
             self.selectedDate = externalDate
             self.displayedMonth = externalDate
         }
     }
     
-    // Update from external source (e.g., Journal view model)
     func updateWithExternalDate(_ date: Date?) {
         guard let date = date else { return }
         
-        // Only update if it's a different day
         if !calendar.isDate(selectedDate, inSameDayAs: date) {
             print("📅 CalendarViewModel: Updating selected date from external source: \(date)")
             selectedDate = date
             
-            // Update displayed month if needed
             if !calendar.isDate(displayedMonth, equalTo: date, toGranularity: .month) {
                 displayedMonth = date
             }
@@ -80,7 +75,6 @@ final class CalendarViewModel: ObservableObject {
     }
 }
 
-// MARK: - Utilities
 extension DateFormatter {
     func with(_ configure: (DateFormatter) -> Void) -> DateFormatter {
         configure(self)

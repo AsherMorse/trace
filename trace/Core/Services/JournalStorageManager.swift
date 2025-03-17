@@ -15,7 +15,6 @@ class JournalStorageManager: JournalStorageManagerProtocol {
         setupJournalDirectory()
     }
     
-    // MARK: - Public Methods
     
     func saveEntry(_ entry: JournalEntry) async throws {
         let markdownContent = entry.toMarkdown()
@@ -72,7 +71,6 @@ class JournalStorageManager: JournalStorageManagerProtocol {
         return entryDates.sorted()
     }
     
-    // MARK: - Private Methods
     
     private func setupJournalDirectory() {
         guard let folderURL = FolderManager.shared.selectedFolderURL else {

@@ -72,13 +72,11 @@ struct WellbeingView: View {
     }
     
     private func updateViewModel() {
-        // Create a JournalEntry with updated values and convert to markdown
         var entry = viewModel.currentEntry ?? JournalEntry(date: viewModel.selectedDate ?? Date())
         entry.wellbeing.energyLevel = Int(energyLevel)
         entry.wellbeing.physicalActivity = physicalActivity
         entry.wellbeing.mentalHealth = mentalHealth
         
-        // Update the viewModel's editedContent with new markdown
         viewModel.updateEntrySection(entry)
     }
     

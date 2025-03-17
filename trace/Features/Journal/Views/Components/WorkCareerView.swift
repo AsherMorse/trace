@@ -28,14 +28,12 @@ struct WorkCareerView: View {
         }
     }
     
-    // Work Item States
     @State private var showingAddWorkItem: Bool = false
     @State private var newWorkItemTitle: String = ""
     @State private var newWorkItemDescription: String = ""
     @State private var newWorkItemStatus: WorkItemStatus = .todo
     @State private var newWorkItemPriority: WorkItemPriority = .medium
     
-    // Meeting States
     @State private var showingAddMeeting: Bool = false
     @State private var newMeetingTitle: String = ""
     @State private var newMeetingAttendees: String = ""
@@ -45,7 +43,6 @@ struct WorkCareerView: View {
     var body: some View {
         SectionContainer {
             VStack(alignment: .leading, spacing: 16) {
-                // Work Items Section
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Work Items")
                         .font(.headline)
@@ -113,7 +110,6 @@ struct WorkCareerView: View {
                     }
                 }
                 
-                // Meetings Section
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Meetings")
                         .font(.headline)
@@ -167,7 +163,6 @@ struct WorkCareerView: View {
                     }
                 }
                 
-                // Text Editors
                 JournalTextEditor(
                     title: "Challenges",
                     text: $challenges
@@ -243,10 +238,8 @@ struct WorkCareerView: View {
     }
     
     private func updateViewModel() {
-        // Create a JournalEntry with updated values and convert to markdown
         var entry = viewModel.currentEntry ?? JournalEntry(date: viewModel.selectedDate ?? Date())
         
-        // Convert WorkItems to JournalWorkItems
         let journalWorkItems = workItems.map { item -> JournalWorkItem in
             return JournalWorkItem(
                 title: item.title,
@@ -256,7 +249,6 @@ struct WorkCareerView: View {
             )
         }
         
-        // Convert Meetings to JournalMeetings
         let journalMeetings = meetings.map { meeting -> JournalMeeting in
             return JournalMeeting(
                 title: meeting.title,
@@ -266,14 +258,12 @@ struct WorkCareerView: View {
             )
         }
         
-        // Update the entry
         entry.workCareer.workItems = journalWorkItems
         entry.workCareer.meetings = journalMeetings
         entry.workCareer.challenges = challenges
         entry.workCareer.wins = wins
         entry.workCareer.workIdeas = workIdeas
         
-        // Update the viewModel's editedContent with new markdown
         viewModel.updateEntrySection(entry)
     }
     
@@ -283,7 +273,6 @@ struct WorkCareerView: View {
             wins = entry.workCareer.wins
             workIdeas = entry.workCareer.workIdeas
             
-            // Convert JournalWorkItems to WorkItems
             workItems = entry.workCareer.workItems.map { item -> WorkItem in
                 return WorkItem(
                     title: item.title,
@@ -293,7 +282,6 @@ struct WorkCareerView: View {
                 )
             }
             
-            // Convert JournalMeetings to Meetings
             meetings = entry.workCareer.meetings.map { meeting -> Meeting in
                 return Meeting(
                     title: meeting.title,
@@ -305,8 +293,6 @@ struct WorkCareerView: View {
         }
     }
 }
-
-// MARK: - Work Item Models
 
 struct WorkItem: Identifiable {
     let id = UUID()
@@ -385,7 +371,6 @@ struct WorkItemRow: View {
                 Spacer()
                 
                 HStack(spacing: 8) {
-                    // Priority indicator
                     Text(item.priority.description)
                         .font(.caption)
                         .padding(.horizontal, 6)
@@ -394,14 +379,13 @@ struct WorkItemRow: View {
                         .foregroundColor(item.priority.color)
                         .cornerRadius(4)
                     
-                    // Status picker
                     Picker("Status", selection: $status) {
                         ForEach(WorkItemStatus.allCases, id: \.self) { status in
                             Text(status.description).tag(status)
                         }
                     }
                     .frame(width: 120)
-                    .onChange(of: status) { newValue in
+                    .onChange(of: status) { oldValue, newValue in
                         var updatedItem = item
                         updatedItem.status = newValue
                         onUpdate(updatedItem)
@@ -420,8 +404,6 @@ struct WorkItemRow: View {
         .cornerRadius(8)
     }
 }
-
-// MARK: - Meeting Models
 
 struct Meeting: Identifiable {
     let id = UUID()
@@ -483,3 +465,4 @@ struct MeetingRow: View {
         .frame(width: 600)
         .padding()
 }
+

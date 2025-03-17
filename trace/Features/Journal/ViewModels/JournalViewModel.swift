@@ -28,14 +28,13 @@ class JournalViewModel {
             let oldContentLength = oldValue.count
             let newContentLength = editedContent.count
             
-            // Check if content has changed and update dirty flag
             isDirty = editedContent != fileContent
             
             print("📝 Content changed: \(oldContentLength) → \(newContentLength) chars | isDirty: \(isDirty)")
             
             if isDirty {
                 print("🔍 DIFF - Edited length: \(editedContent.count), File length: \(fileContent.count)")
-                // Log a sample of the first difference to help diagnose
+                
                 if editedContent.count > 0 && fileContent.count > 0 {
                     for (i, (editedChar, fileChar)) in zip(editedContent, fileContent).enumerated() {
                         if editedChar != fileChar {
@@ -48,7 +47,6 @@ class JournalViewModel {
                         }
                     }
                     
-                    // If lengths are different but no character differences found in the range checked
                     if editedContent.count != fileContent.count && editedContent.prefix(min(editedContent.count, fileContent.count)) == fileContent.prefix(min(editedContent.count, fileContent.count)) {
                         print("📝 Content lengths differ but beginnings match. One has additional content at the end.")
                     }
@@ -59,7 +57,6 @@ class JournalViewModel {
                 print("🔄 Dirty state changed: \(isDirty ? "Entry has unsaved changes" : "Entry is clean")")
             }
             
-            // Update currentEntry when editedContent changes
             updateCurrentEntryFromMarkdown()
         }
     }
@@ -71,13 +68,12 @@ class JournalViewModel {
         }
     }
     
-    // Current parsed entry from the markdown, for use by the section views
     var currentEntry: JournalEntry?
     
     private let fileService: JournalFileServiceProtocol
     private let storageManager: JournalStorageManagerProtocol
     private var autoSaveTimer: Timer?
-    private let autoSaveInterval: TimeInterval = 30 // Seconds
+    private let autoSaveInterval: TimeInterval = 30
     
     init(fileService: JournalFileServiceProtocol = JournalFileService(), 
          storageManager: JournalStorageManagerProtocol = JournalStorageManager()) {
@@ -99,17 +95,12 @@ class JournalViewModel {
         stopAutoSaveTimer()
     }
     
-    // Update the editedContent based on changes in a section
     func updateEntrySection(_ updatedEntry: JournalEntry) {
         print("🔄 Updating entry section with new data")
         
-        // Save the current entry with the updated section
         if var entry = currentEntry {
-            // Update only the specific section that changed
-            // We'd need to be more selective here in a real implementation
             currentEntry = updatedEntry
             
-            // Convert the updated entry to markdown and update editedContent
             editedContent = updatedEntry.toMarkdown()
             print("✅ Updated editedContent from section change")
         } else {
@@ -119,7 +110,6 @@ class JournalViewModel {
         }
     }
     
-    // Parse the current markdown to update the currentEntry property
     private func updateCurrentEntryFromMarkdown() {
         if let date = selectedDate {
             currentEntry = JournalEntry(fromMarkdown: editedContent, date: date)
@@ -236,12 +226,10 @@ class JournalViewModel {
             if !self.isDirty {
                 print("ℹ️ Auto-save skipped: No changes to save (isDirty is false)")
                 
-                // Additional debug info
                 if self.editedContent != self.fileContent {
                     print("⚠️ WARNING: Content differs but isDirty is false!")
                     print("⚠️ This indicates a potential bug in dirty state tracking")
                     
-                    // Force update isDirty
                     self.isDirty = self.editedContent != self.fileContent
                     print("⚠️ Corrected isDirty to: \(self.isDirty)")
                 }
@@ -295,7 +283,7 @@ class JournalViewModel {
                     let entry = try await storageManager.loadEntry(for: date)
                     currentEntry = entry
                     fileContent = entry.toMarkdown()
-                    editedContent = fileContent // Initialize edited content
+                    editedContent = fileContent
                     print("✅ Entry loaded successfully - Content length: \(fileContent.count) chars")
                 } else {
                     print("ℹ️ No entry exists for this date, using empty content")
@@ -335,7 +323,7 @@ class JournalViewModel {
                 selectedDate = date
                 currentEntry = entry
                 fileContent = entry.toMarkdown()
-                editedContent = fileContent // Initialize edited content
+                editedContent = fileContent
                 print("✅ New entry created successfully - Content length: \(fileContent.count) chars")
                 isLoading = false
             } catch {

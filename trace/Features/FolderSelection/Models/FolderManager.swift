@@ -18,8 +18,6 @@ final class FolderManager {
         loadSavedFolder()
     }
 
-    // MARK: - File System Access
-
     func canAccessSelectedFolder() -> Bool {
         guard let url = selectedFolderURL else { return false }
 
@@ -38,8 +36,6 @@ final class FolderManager {
         stopAccessingFolder()
         invalidateBookmark()
     }
-
-    // MARK: - Folder Selection
 
     func saveSelectedFolder(url: URL, completion: ((Result<Void, FolderError>) -> Void)? = nil) {
         stopAccessingFolder()
@@ -72,7 +68,6 @@ final class FolderManager {
         }
     }
 
-    // MARK: - Private Methods
 
     private func loadSavedFolder() {
         let savedBookmarkData = UserDefaults.standard.data(forKey: UserDefaultsKeys.selectedFolderBookmark)

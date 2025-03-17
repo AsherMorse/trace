@@ -1,6 +1,5 @@
 import SwiftUI
 
-// MARK: - Calendar View
 struct CalendarView: View {
     @StateObject private var model = CalendarViewModel()
     var onDateSelected: ((Date) -> Void)?
@@ -9,7 +8,6 @@ struct CalendarView: View {
     init(selectedDate: Date? = nil, onDateSelected: ((Date) -> Void)? = nil) {
         self.selectedDate = selectedDate
         self.onDateSelected = onDateSelected
-        // Initialize a state object with the selectedDate
         _model = StateObject(wrappedValue: CalendarViewModel(externalSelectedDate: selectedDate))
     }
     
@@ -46,7 +44,6 @@ struct CalendarView: View {
     }
 }
 
-// MARK: - Preview
 struct CalendarView_Previews: PreviewProvider {
     static var previews: some View {
         Group {

@@ -74,20 +74,17 @@ struct DailyCheckInView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .onAppear {
-                // Load data from viewModel when view appears
                 loadFromViewModel()
             }
         }
     }
     
     private func updateViewModel() {
-        // Create a JournalEntry with updated values and convert to markdown
         var entry = viewModel.currentEntry ?? JournalEntry(date: viewModel.selectedDate ?? Date())
         entry.dailyCheckIn.mood = selectedMood
         entry.dailyCheckIn.todaysHighlight = dailyHighlight
         entry.dailyCheckIn.dailyOverview = dailyOverview
         
-        // Update the viewModel's editedContent with new markdown
         viewModel.updateEntrySection(entry)
     }
     

@@ -149,10 +149,8 @@ struct CreativityLearningView: View {
     }
     
     private func updateViewModel() {
-        // Create a JournalEntry with updated values and convert to markdown
         var entry = viewModel.currentEntry ?? JournalEntry(date: viewModel.selectedDate ?? Date())
         
-        // Convert MediaItems to JournalMediaItems
         let journalMediaItems = mediaItems.map { item -> JournalMediaItem in
             return JournalMediaItem(
                 title: item.title,
@@ -162,13 +160,11 @@ struct CreativityLearningView: View {
             )
         }
         
-        // Update the entry
         entry.creativityLearning.ideas = ideas
         entry.creativityLearning.learningLog = learningLog
         entry.creativityLearning.booksMedia = journalMediaItems
         entry.creativityLearning.projects = projects
         
-        // Update the viewModel's editedContent with new markdown
         viewModel.updateEntrySection(entry)
     }
     
@@ -178,7 +174,6 @@ struct CreativityLearningView: View {
             learningLog = entry.creativityLearning.learningLog
             projects = entry.creativityLearning.projects
             
-            // Convert JournalMediaItems to MediaItems
             mediaItems = entry.creativityLearning.booksMedia.map { item -> MediaItem in
                 return MediaItem(
                     title: item.title,

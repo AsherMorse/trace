@@ -7,11 +7,7 @@ final class FileService {
     
     private init() {}
     
-    // MARK: - File Reading/Writing
-    
     func readFile(at url: URL) async throws -> String {
-        // Note: We're not accessing security-scoped resources here because
-        // FolderManager already handles that at a higher level
         do {
             return try String(contentsOf: url, encoding: .utf8)
         } catch {
@@ -31,8 +27,6 @@ final class FileService {
         }
     }
     
-    // MARK: - Directory Operations
-    
     func createDirectoryIfNeeded(at url: URL) throws {
         var isDirectory: ObjCBool = false
         let exists = fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory)
@@ -40,7 +34,6 @@ final class FileService {
         if !exists {
             try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
         } else if !isDirectory.boolValue {
-            // Path exists but is not a directory
             throw FileError.directoryNotFound
         }
     }

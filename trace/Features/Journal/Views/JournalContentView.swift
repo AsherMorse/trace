@@ -43,7 +43,6 @@ struct JournalContentView: View {
                             .id("\(date.timeIntervalSince1970)-\(refreshKey)")
                         }
                         
-                        // Debug controls
                         HStack {
                             Spacer()
                             Button("Save Changes") {

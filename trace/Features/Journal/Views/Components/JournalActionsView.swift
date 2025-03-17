@@ -15,10 +15,7 @@ struct JournalActionsView: View {
         .background(Theme.backgroundSecondary)
     }
     
-    // MARK: - Private Views
-    
     private var headerView: some View {
-        // STUB: Header for quick actions section
         Text("Quick Actions")
             .font(.headline)
             .fontWeight(.bold)
@@ -26,7 +23,6 @@ struct JournalActionsView: View {
     }
     
     private var quickActionsButtons: some View {
-        // STUB: Quick action buttons for common journal operations
         VStack(spacing: 10) {
             newEntryButton
             todaysEntryButton
@@ -109,8 +105,6 @@ struct JournalActionsView: View {
         .tint(.red)
         .help("Clear the current journal folder selection")
     }
-    
-    // MARK: - Private Methods
     
     private func createNewEntry() {
         print("📔 createNewEntry called")

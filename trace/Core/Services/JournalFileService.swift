@@ -88,8 +88,6 @@ class JournalFileService: JournalFileServiceProtocol {
         return fileManager.fileExists(atPath: entryURL.path)
     }
     
-    // MARK: - Private Methods
-    
     private func formatDateComponents(from date: Date) -> (year: String, month: String, day: String) {
         let components = calendar.dateComponents([.year, .month, .day], from: date)
         

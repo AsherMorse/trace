@@ -70,14 +70,12 @@ struct PersonalGrowthView: View {
     }
     
     private func updateViewModel() {
-        // Create a JournalEntry with updated values and convert to markdown
         var entry = viewModel.currentEntry ?? JournalEntry(date: viewModel.selectedDate ?? Date())
         entry.personalGrowth.reflections = reflections
         entry.personalGrowth.achievements = achievements
         entry.personalGrowth.challenges = challenges
         entry.personalGrowth.goals = goals
         
-        // Update the viewModel's editedContent with new markdown
         viewModel.updateEntrySection(entry)
     }
     

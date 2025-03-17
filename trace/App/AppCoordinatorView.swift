@@ -15,7 +15,6 @@ struct AppCoordinatorView: View {
                     setupFolderValidationHandler()
                 }
             } else {
-                // Temporary until we have a main view
                 JournalView()
             }
         }
