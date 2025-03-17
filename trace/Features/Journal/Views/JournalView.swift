@@ -21,7 +21,7 @@ struct JournalView: View {
             .frame(maxWidth: 600)
             .layoutPriority(1)
             
-            JournalContentView(viewModel: journalViewModel)
+            JournalEntryView(viewModel: journalViewModel)
                 .layoutPriority(2)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
