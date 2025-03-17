@@ -2,25 +2,33 @@ import SwiftUI
 
 @Observable
 final class JournalViewModel {
-    // Core data properties
-    var selectedDate: Date?
+    
+    
+    
+    var selectedDate: Date? {
+        didSet { if selectedDate != oldValue { handleDateChange() } }
+    }
     var currentEntry: JournalEntry?
-    var editedContent: String = ""
+    var editedContent: String = "" {
+        didSet { handleContentChange() }
+    }
     var fileContent: String = ""
     var isDirty: Bool = false
     
-    // UI state
+    
     var isLoading: Bool = false
     var hasError: Bool = false
     var errorMessage: String?
     
-    // Services
+    
     private let fileService: JournalFileServiceProtocol
     private let storageManager: JournalStorageManagerProtocol
     
-    // Auto-save functionality
+    
     private var autoSaveTimer: Timer?
     private let autoSaveInterval: TimeInterval = 30
+    
+    
     
     init(
         fileService: JournalFileServiceProtocol = JournalFileService(),
@@ -38,12 +46,14 @@ final class JournalViewModel {
         stopAutoSaveTimer()
     }
     
-    // MARK: - Entry Management
+    
     
     func updateEntrySection(_ updatedEntry: JournalEntry) {
         currentEntry = updatedEntry
         editedContent = updatedEntry.toMarkdown()
-        isDirty = editedContent != fileContent
+        
+        
+        isDirty = fileContent != editedContent
     }
     
     func reset() {
@@ -58,7 +68,7 @@ final class JournalViewModel {
         stopAutoSaveTimer()
     }
     
-    // MARK: - Date and File Handling
+    
     
     func getEntryURL(for date: Date) -> URL? {
         return fileService.getEntryURL(for: date)
@@ -76,7 +86,7 @@ final class JournalViewModel {
         return formatter.string(from: date)
     }
     
-    // MARK: - Editing Functions
+    
     
     func loadAndStartEditing() {
         editedContent = fileContent
@@ -88,10 +98,10 @@ final class JournalViewModel {
         isDirty = false
     }
     
-    // MARK: - Save Functions
+    
     
     func saveEdits() async throws {
-        guard let date = selectedDate else { return }
+        guard let date = selectedDate, isDirty else { return }
         try await saveCurrentEntry()
     }
     
@@ -101,23 +111,28 @@ final class JournalViewModel {
         isLoading = true
         
         do {
-            if let entry = JournalEntry(fromMarkdown: editedContent, date: date) {
+            
+            if let entry = currentEntry {
                 try await storageManager.saveEntry(entry)
                 fileContent = editedContent
                 isDirty = false
+            } else if let entry = JournalEntry(fromMarkdown: editedContent, date: date) {
+                try await storageManager.saveEntry(entry)
+                fileContent = editedContent
                 currentEntry = entry
+                isDirty = false
             } else {
                 throw JournalFileError.saveFailed
             }
-            isLoading = false
             
+            isLoading = false
         } catch {
             handleError(error)
             throw error
         }
     }
     
-    // MARK: - Auto-Save Timer
+    
     
     func startAutoSaveTimer() {
         stopAutoSaveTimer()
@@ -125,16 +140,15 @@ final class JournalViewModel {
         autoSaveTimer = Timer.scheduledTimer(withTimeInterval: autoSaveInterval, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             
-            if !self.isDirty {
-                self.isDirty = self.editedContent != self.fileContent
-                return
+            
+            if !self.isDirty && self.editedContent != self.fileContent {
+                self.isDirty = true
             }
             
-            Task {
-                do {
-                    try await self.saveCurrentEntry()
-                } catch {
-                    self.handleError(error)
+            
+            if self.isDirty {
+                Task {
+                    try? await self.saveCurrentEntry()
                 }
             }
         }
@@ -145,7 +159,7 @@ final class JournalViewModel {
         autoSaveTimer = nil
     }
     
-    // MARK: - Content Loading
+    
     
     func loadContent(for date: Date?) {
         guard let date = date else {
@@ -169,9 +183,11 @@ final class JournalViewModel {
                     currentEntry = entry
                     fileContent = entry.toMarkdown()
                     editedContent = fileContent
+                    isDirty = false
                 } else {
                     fileContent = ""
                     editedContent = ""
+                    isDirty = false
                     currentEntry = JournalEntry(date: date)
                 }
                 isLoading = false
@@ -181,7 +197,7 @@ final class JournalViewModel {
         }
     }
     
-    // MARK: - Entry Operations
+    
     
     func createEntry(for date: Date) {
         guard FolderManager.shared.hasSelectedFolder else {
@@ -201,6 +217,7 @@ final class JournalViewModel {
                 currentEntry = entry
                 fileContent = entry.toMarkdown()
                 editedContent = fileContent
+                isDirty = false
                 isLoading = false
             } catch {
                 handleError(error)
@@ -226,31 +243,28 @@ final class JournalViewModel {
         FolderManager.shared.resetFolderSelection()
     }
     
+    
+    
     func handleError(_ error: Error) {
         hasError = true
         errorMessage = error.localizedDescription
         isLoading = false
     }
     
-    // MARK: - Property Observers
-    
-    func dateChanged(from oldValue: Date?) {
-        if selectedDate != oldValue {
-            loadContent(for: selectedDate)
-            stopAutoSaveTimer()
-            startAutoSaveTimer()
-        }
+    private func handleDateChange() {
+        loadContent(for: selectedDate)
+        stopAutoSaveTimer()
+        startAutoSaveTimer()
     }
     
-    func contentChanged(from oldValue: String) {
-        let wasDirty = isDirty
+    private func handleContentChange() {
         
         isDirty = editedContent != fileContent
         
-        if isDirty {
-            if let date = selectedDate {
-                currentEntry = JournalEntry(fromMarkdown: editedContent, date: date)
-            }
+        
+        if isDirty, let date = selectedDate,
+           let entry = JournalEntry(fromMarkdown: editedContent, date: date) {
+            currentEntry = entry
         }
     }
 } 

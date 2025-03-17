@@ -6,7 +6,7 @@ struct CreativityLearningView: View {
     var body: some View {
         SectionContainer {
             VStack(alignment: .leading, spacing: 16) {
-                // Text editors
+                
                 JournalTextEditor(
                     title: "Ideas",
                     text: $viewModel.ideas,
@@ -19,7 +19,7 @@ struct CreativityLearningView: View {
                     minHeight: 100
                 )
                 
-                // Media section
+                
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Books & Media")
@@ -105,7 +105,7 @@ struct CreativityLearningView: View {
     }
 }
 
-// Simple read-only row component for media items with status update
+
 struct MediaItemRow: View {
     var item: JournalMediaItem
     var onStatusUpdate: (String) -> Void

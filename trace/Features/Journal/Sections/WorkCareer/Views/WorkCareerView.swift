@@ -6,7 +6,7 @@ struct WorkCareerView: View {
     var body: some View {
         SectionContainer {
             VStack(alignment: .leading, spacing: 16) {
-                // 1. Work Items section
+                
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Work Items")
@@ -88,7 +88,7 @@ struct WorkCareerView: View {
                     }
                 }
                 
-                // 2. Meetings section
+                
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Meetings")
@@ -155,7 +155,7 @@ struct WorkCareerView: View {
                     }
                 }
                 
-                // 3. Text editors
+                
                 JournalTextEditor(
                     title: "Challenges",
                     text: $viewModel.challenges,
@@ -179,7 +179,7 @@ struct WorkCareerView: View {
     }
 }
 
-// Simple read-only row component for work items
+
 struct WorkItemRow: View {
     var item: JournalWorkItem
     
@@ -233,7 +233,7 @@ struct WorkItemRow: View {
     }
 }
 
-// Simple read-only row component for meetings
+
 struct MeetingRow: View {
     var meeting: JournalMeeting
     

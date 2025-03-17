@@ -2,7 +2,7 @@ import SwiftUI
 
 @Observable
 final class WorkCareerViewModel {
-    // Core data properties
+    
     var items: [JournalWorkItem] = []
     var meetings: [JournalMeeting] = []
     var challenges: String = ""
@@ -10,14 +10,14 @@ final class WorkCareerViewModel {
     var ideas: String = ""
     var id = UUID()
     
-    // Work item form state
+    
     var showingAddWorkItem: Bool = false
     var newWorkItemTitle: String = ""
     var newWorkItemDescription: String = ""
     var newWorkItemStatus: String = "To Do"
     var newWorkItemPriority: String = "Medium"
     
-    // Meeting form state
+    
     var showingAddMeeting: Bool = false
     var newMeetingTitle: String = ""
     var newMeetingAttendees: String = ""

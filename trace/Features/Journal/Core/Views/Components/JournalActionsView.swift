@@ -33,7 +33,7 @@ struct JournalActionsView: View {
     }
     
     private var newEntryButton: some View {
-        // STUB: Button to create a new entry
+        
         Button(action: {
             createNewEntry()
         }) {
@@ -47,7 +47,7 @@ struct JournalActionsView: View {
     }
     
     private var todaysEntryButton: some View {
-        // STUB: Button to show today's entry
+        
         Button(action: {
             viewModel.openTodaysEntry()
         }) {
@@ -61,9 +61,9 @@ struct JournalActionsView: View {
     }
     
     private var recentEntriesButton: some View {
-        // STUB: Button to show recent entries (non-functional in stub)
+        
         Button(action: {
-            // Not implemented in stub
+            
             print("Recent entries button tapped")
         }) {
             Label("Recent Entries", systemImage: "clock")
@@ -72,14 +72,14 @@ struct JournalActionsView: View {
         }
         .buttonStyle(.bordered)
         .tint(.indigo)
-        .disabled(true) // Disabled in stub
+        .disabled(true) 
         .help("View recently created journal entries")
     }
     
     private var searchButton: some View {
-        // STUB: Button to search entries (non-functional in stub)
+        
         Button(action: {
-            // Not implemented in stub
+            
             print("Search button tapped")
         }) {
             Label("Search Journal", systemImage: "magnifyingglass")
@@ -88,12 +88,12 @@ struct JournalActionsView: View {
         }
         .buttonStyle(.bordered)
         .tint(.purple)
-        .disabled(true) // Disabled in stub
+        .disabled(true) 
         .help("Search for content in your journal entries")
     }
     
     private var resetFolderButton: some View {
-        // STUB: Button to reset folder selection
+        
         Button(action: {
             viewModel.resetFolderSelection()
         }) {

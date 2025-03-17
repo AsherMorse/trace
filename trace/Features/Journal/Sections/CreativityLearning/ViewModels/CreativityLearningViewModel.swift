@@ -2,14 +2,14 @@ import SwiftUI
 
 @Observable
 final class CreativityLearningViewModel {
-    // Core data properties
+    
     var ideas: String = ""
     var learningLog: String = ""
     var projects: String = ""
     var mediaItems: [JournalMediaItem] = []
     var id = UUID()
     
-    // Media form state
+    
     var showingAddMedia: Bool = false
     var newMediaTitle: String = ""
     var newMediaCreator: String = ""
