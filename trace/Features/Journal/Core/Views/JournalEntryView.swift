@@ -5,12 +5,12 @@ struct JournalEntryView: View {
     @Bindable var viewModel: JournalViewModel
     
     
-    @State private var dailyCheckInVM = DailyCheckInViewModel()
-    @State private var personalGrowthVM = PersonalGrowthViewModel()
-    @State private var wellbeingVM = WellbeingViewModel()
-    @State private var creativityLearningVM = CreativityLearningViewModel()
-    @State private var socialVM = SocialViewModel()
-    @State private var workCareerVM = WorkCareerViewModel()
+    @State private var dailyCheckInViewModel = DailyCheckInViewModel()
+    @State private var personalGrowthViewModel = PersonalGrowthViewModel()
+    @State private var wellbeingViewModel = WellbeingViewModel()
+    @State private var creativityLearningViewModel = CreativityLearningViewModel()
+    @State private var socialViewModel = SocialViewModel()
+    @State private var workCareerViewModel = WorkCareerViewModel()
     
     
     @State private var selectedTab: JournalSection = .dailyCheckIn
@@ -71,44 +71,44 @@ struct JournalEntryView: View {
     private var sectionView: some View {
         switch selectedTab {
         case .dailyCheckIn:
-            DailyCheckInView(viewModel: dailyCheckInVM)
-                .onChange(of: dailyCheckInVM.dailyOverview) { _, _ in updateJournalFromDailyCheckIn() }
-                .onChange(of: dailyCheckInVM.todaysHighlight) { _, _ in updateJournalFromDailyCheckIn() }
-                .onChange(of: dailyCheckInVM.mood) { _, _ in updateJournalFromDailyCheckIn() }
+            DailyCheckInView(viewModel: dailyCheckInViewModel)
+                .onChange(of: dailyCheckInViewModel.dailyOverview) { _, _ in updateJournalFromDailyCheckIn() }
+                .onChange(of: dailyCheckInViewModel.todaysHighlight) { _, _ in updateJournalFromDailyCheckIn() }
+                .onChange(of: dailyCheckInViewModel.mood) { _, _ in updateJournalFromDailyCheckIn() }
             
         case .personalGrowth:
-            PersonalGrowthView(viewModel: personalGrowthVM)
-                .onChange(of: personalGrowthVM.reflections) { _, _ in updateJournalFromPersonalGrowth() }
-                .onChange(of: personalGrowthVM.achievements) { _, _ in updateJournalFromPersonalGrowth() }
-                .onChange(of: personalGrowthVM.challenges) { _, _ in updateJournalFromPersonalGrowth() }
-                .onChange(of: personalGrowthVM.goals) { _, _ in updateJournalFromPersonalGrowth() }
+            PersonalGrowthView(viewModel: personalGrowthViewModel)
+                .onChange(of: personalGrowthViewModel.reflections) { _, _ in updateJournalFromPersonalGrowth() }
+                .onChange(of: personalGrowthViewModel.achievements) { _, _ in updateJournalFromPersonalGrowth() }
+                .onChange(of: personalGrowthViewModel.challenges) { _, _ in updateJournalFromPersonalGrowth() }
+                .onChange(of: personalGrowthViewModel.goals) { _, _ in updateJournalFromPersonalGrowth() }
             
         case .wellbeing:
-            WellbeingView(viewModel: wellbeingVM)
-                .onChange(of: wellbeingVM.energyLevel) { _, _ in updateJournalFromWellbeing() }
-                .onChange(of: wellbeingVM.physicalActivity) { _, _ in updateJournalFromWellbeing() }
-                .onChange(of: wellbeingVM.mentalHealth) { _, _ in updateJournalFromWellbeing() }
+            WellbeingView(viewModel: wellbeingViewModel)
+                .onChange(of: wellbeingViewModel.energyLevel) { _, _ in updateJournalFromWellbeing() }
+                .onChange(of: wellbeingViewModel.physicalActivity) { _, _ in updateJournalFromWellbeing() }
+                .onChange(of: wellbeingViewModel.mentalHealth) { _, _ in updateJournalFromWellbeing() }
             
         case .creativityLearning:
-            CreativityLearningView(viewModel: creativityLearningVM)
-                .onChange(of: creativityLearningVM.ideas) { _, _ in updateJournalFromCreativityLearning() }
-                .onChange(of: creativityLearningVM.learningLog) { _, _ in updateJournalFromCreativityLearning() }
-                .onChange(of: creativityLearningVM.projects) { _, _ in updateJournalFromCreativityLearning() }
-                .onChange(of: creativityLearningVM.showingAddMedia) { _, _ in updateJournalFromCreativityLearning() }
+            CreativityLearningView(viewModel: creativityLearningViewModel)
+                .onChange(of: creativityLearningViewModel.ideas) { _, _ in updateJournalFromCreativityLearning() }
+                .onChange(of: creativityLearningViewModel.learningLog) { _, _ in updateJournalFromCreativityLearning() }
+                .onChange(of: creativityLearningViewModel.projects) { _, _ in updateJournalFromCreativityLearning() }
+                .onChange(of: creativityLearningViewModel.showingAddMedia) { _, _ in updateJournalFromCreativityLearning() }
             
         case .social:
-            SocialView(viewModel: socialVM)
-                .onChange(of: socialVM.showingAddInteraction) { _, _ in updateJournalFromSocial() }
-                .onChange(of: socialVM.relationshipUpdates) { _, _ in updateJournalFromSocial() }
-                .onChange(of: socialVM.socialEvents) { _, _ in updateJournalFromSocial() }
+            SocialView(viewModel: socialViewModel)
+                .onChange(of: socialViewModel.showingAddInteraction) { _, _ in updateJournalFromSocial() }
+                .onChange(of: socialViewModel.relationshipUpdates) { _, _ in updateJournalFromSocial() }
+                .onChange(of: socialViewModel.socialEvents) { _, _ in updateJournalFromSocial() }
             
         case .workCareer:
-            WorkCareerView(viewModel: workCareerVM)
-                .onChange(of: workCareerVM.showingAddWorkItem) { _, _ in updateJournalFromWorkCareer() }
-                .onChange(of: workCareerVM.showingAddMeeting) { _, _ in updateJournalFromWorkCareer() }
-                .onChange(of: workCareerVM.challenges) { _, _ in updateJournalFromWorkCareer() }
-                .onChange(of: workCareerVM.achievements) { _, _ in updateJournalFromWorkCareer() }
-                .onChange(of: workCareerVM.ideas) { _, _ in updateJournalFromWorkCareer() }
+            WorkCareerView(viewModel: workCareerViewModel)
+                .onChange(of: workCareerViewModel.showingAddWorkItem) { _, _ in updateJournalFromWorkCareer() }
+                .onChange(of: workCareerViewModel.showingAddMeeting) { _, _ in updateJournalFromWorkCareer() }
+                .onChange(of: workCareerViewModel.challenges) { _, _ in updateJournalFromWorkCareer() }
+                .onChange(of: workCareerViewModel.achievements) { _, _ in updateJournalFromWorkCareer() }
+                .onChange(of: workCareerViewModel.ideas) { _, _ in updateJournalFromWorkCareer() }
         }
     }
     
@@ -167,16 +167,16 @@ struct JournalEntryView: View {
     
     private func updateDailyCheckInFromJournal() {
         guard let entry = viewModel.currentEntry else { return }
-        dailyCheckInVM.mood = entry.dailyCheckIn.mood.isEmpty ? "Good" : entry.dailyCheckIn.mood
-        dailyCheckInVM.todaysHighlight = entry.dailyCheckIn.todaysHighlight
-        dailyCheckInVM.dailyOverview = entry.dailyCheckIn.dailyOverview
+        dailyCheckInViewModel.mood = entry.dailyCheckIn.mood.isEmpty ? "Good" : entry.dailyCheckIn.mood
+        dailyCheckInViewModel.todaysHighlight = entry.dailyCheckIn.todaysHighlight
+        dailyCheckInViewModel.dailyOverview = entry.dailyCheckIn.dailyOverview
     }
     
     private func updateJournalFromDailyCheckIn() {
         guard var entry = viewModel.currentEntry else { return }
-        entry.dailyCheckIn.mood = dailyCheckInVM.mood
-        entry.dailyCheckIn.todaysHighlight = dailyCheckInVM.todaysHighlight
-        entry.dailyCheckIn.dailyOverview = dailyCheckInVM.dailyOverview
+        entry.dailyCheckIn.mood = dailyCheckInViewModel.mood
+        entry.dailyCheckIn.todaysHighlight = dailyCheckInViewModel.todaysHighlight
+        entry.dailyCheckIn.dailyOverview = dailyCheckInViewModel.dailyOverview
         viewModel.updateEntrySection(entry)
     }
     
@@ -184,18 +184,18 @@ struct JournalEntryView: View {
     
     private func updatePersonalGrowthFromJournal() {
         guard let entry = viewModel.currentEntry else { return }
-        personalGrowthVM.reflections = entry.personalGrowth.reflections
-        personalGrowthVM.achievements = entry.personalGrowth.achievements
-        personalGrowthVM.challenges = entry.personalGrowth.challenges
-        personalGrowthVM.goals = entry.personalGrowth.goals
+        personalGrowthViewModel.reflections = entry.personalGrowth.reflections
+        personalGrowthViewModel.achievements = entry.personalGrowth.achievements
+        personalGrowthViewModel.challenges = entry.personalGrowth.challenges
+        personalGrowthViewModel.goals = entry.personalGrowth.goals
     }
     
     private func updateJournalFromPersonalGrowth() {
         guard var entry = viewModel.currentEntry else { return }
-        entry.personalGrowth.reflections = personalGrowthVM.reflections
-        entry.personalGrowth.achievements = personalGrowthVM.achievements
-        entry.personalGrowth.challenges = personalGrowthVM.challenges
-        entry.personalGrowth.goals = personalGrowthVM.goals
+        entry.personalGrowth.reflections = personalGrowthViewModel.reflections
+        entry.personalGrowth.achievements = personalGrowthViewModel.achievements
+        entry.personalGrowth.challenges = personalGrowthViewModel.challenges
+        entry.personalGrowth.goals = personalGrowthViewModel.goals
         viewModel.updateEntrySection(entry)
     }
     
@@ -203,16 +203,16 @@ struct JournalEntryView: View {
     
     private func updateWellbeingFromJournal() {
         guard let entry = viewModel.currentEntry else { return }
-        wellbeingVM.energyLevel = entry.wellbeing.energyLevel
-        wellbeingVM.physicalActivity = entry.wellbeing.physicalActivity
-        wellbeingVM.mentalHealth = entry.wellbeing.mentalHealth
+        wellbeingViewModel.energyLevel = entry.wellbeing.energyLevel
+        wellbeingViewModel.physicalActivity = entry.wellbeing.physicalActivity
+        wellbeingViewModel.mentalHealth = entry.wellbeing.mentalHealth
     }
     
     private func updateJournalFromWellbeing() {
         guard var entry = viewModel.currentEntry else { return }
-        entry.wellbeing.energyLevel = wellbeingVM.energyLevel
-        entry.wellbeing.physicalActivity = wellbeingVM.physicalActivity
-        entry.wellbeing.mentalHealth = wellbeingVM.mentalHealth
+        entry.wellbeing.energyLevel = wellbeingViewModel.energyLevel
+        entry.wellbeing.physicalActivity = wellbeingViewModel.physicalActivity
+        entry.wellbeing.mentalHealth = wellbeingViewModel.mentalHealth
         viewModel.updateEntrySection(entry)
     }
     
@@ -220,16 +220,16 @@ struct JournalEntryView: View {
     
     private func updateCreativityLearningFromJournal() {
         guard let entry = viewModel.currentEntry else { return }
-        creativityLearningVM.projects = entry.creativityLearning.projects
-        creativityLearningVM.learningLog = entry.creativityLearning.learningLog
-        creativityLearningVM.ideas = entry.creativityLearning.ideas
+        creativityLearningViewModel.projects = entry.creativityLearning.projects
+        creativityLearningViewModel.learningLog = entry.creativityLearning.learningLog
+        creativityLearningViewModel.ideas = entry.creativityLearning.ideas
     }
     
     private func updateJournalFromCreativityLearning() {
         guard var entry = viewModel.currentEntry else { return }
-        entry.creativityLearning.projects = creativityLearningVM.projects
-        entry.creativityLearning.learningLog = creativityLearningVM.learningLog
-        entry.creativityLearning.ideas = creativityLearningVM.ideas
+        entry.creativityLearning.projects = creativityLearningViewModel.projects
+        entry.creativityLearning.learningLog = creativityLearningViewModel.learningLog
+        entry.creativityLearning.ideas = creativityLearningViewModel.ideas
         viewModel.updateEntrySection(entry)
     }
     
@@ -237,16 +237,16 @@ struct JournalEntryView: View {
     
     private func updateSocialFromJournal() {
         guard let entry = viewModel.currentEntry else { return }
-        socialVM.meaningfulInteractions = entry.social.meaningfulInteractions
-        socialVM.relationshipUpdates = entry.social.relationshipUpdates
-        socialVM.socialEvents = entry.social.socialEvents
+        socialViewModel.meaningfulInteractions = entry.social.meaningfulInteractions
+        socialViewModel.relationshipUpdates = entry.social.relationshipUpdates
+        socialViewModel.socialEvents = entry.social.socialEvents
     }
     
     private func updateJournalFromSocial() {
         guard var entry = viewModel.currentEntry else { return }
-        entry.social.meaningfulInteractions = socialVM.meaningfulInteractions
-        entry.social.relationshipUpdates = socialVM.relationshipUpdates
-        entry.social.socialEvents = socialVM.socialEvents
+        entry.social.meaningfulInteractions = socialViewModel.meaningfulInteractions
+        entry.social.relationshipUpdates = socialViewModel.relationshipUpdates
+        entry.social.socialEvents = socialViewModel.socialEvents
         viewModel.updateEntrySection(entry)
     }
     
@@ -254,20 +254,20 @@ struct JournalEntryView: View {
     
     private func updateWorkCareerFromJournal() {
         guard let entry = viewModel.currentEntry else { return }
-        workCareerVM.achievements = entry.workCareer.wins
-        workCareerVM.challenges = entry.workCareer.challenges
-        workCareerVM.ideas = entry.workCareer.workIdeas
-        workCareerVM.items = entry.workCareer.workItems
-        workCareerVM.meetings = entry.workCareer.meetings
+        workCareerViewModel.achievements = entry.workCareer.wins
+        workCareerViewModel.challenges = entry.workCareer.challenges
+        workCareerViewModel.ideas = entry.workCareer.workIdeas
+        workCareerViewModel.items = entry.workCareer.workItems
+        workCareerViewModel.meetings = entry.workCareer.meetings
     }
     
     private func updateJournalFromWorkCareer() {
         guard var entry = viewModel.currentEntry else { return }
-        entry.workCareer.wins = workCareerVM.achievements
-        entry.workCareer.challenges = workCareerVM.challenges
-        entry.workCareer.workIdeas = workCareerVM.ideas
-        entry.workCareer.workItems = workCareerVM.items
-        entry.workCareer.meetings = workCareerVM.meetings
+        entry.workCareer.wins = workCareerViewModel.achievements
+        entry.workCareer.challenges = workCareerViewModel.challenges
+        entry.workCareer.workIdeas = workCareerViewModel.ideas
+        entry.workCareer.workItems = workCareerViewModel.items
+        entry.workCareer.meetings = workCareerViewModel.meetings
         viewModel.updateEntrySection(entry)
     }
 }

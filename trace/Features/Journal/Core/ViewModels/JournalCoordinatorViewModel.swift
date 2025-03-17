@@ -3,11 +3,11 @@ import SwiftUI
 @Observable
 final class JournalCoordinatorViewModel {
     var dailyCheckInViewModel: DailyCheckInViewModel
-    var personalGrowthVM: PersonalGrowthViewModel
-    var wellbeingVM: WellbeingViewModel
-    var creativityLearningVM: CreativityLearningViewModel
-    var socialVM: SocialViewModel
-    var workCareerVM: WorkCareerViewModel
+    var personalGrowthViewModel: PersonalGrowthViewModel
+    var wellbeingViewModel: WellbeingViewModel
+    var creativityLearningViewModel: CreativityLearningViewModel
+    var socialViewModel: SocialViewModel
+    var workCareerViewModel: WorkCareerViewModel
     
     var selectedDate: Date?
     var error: Error?
@@ -18,21 +18,21 @@ final class JournalCoordinatorViewModel {
     private let storageManager: JournalStorageManagerProtocol
     
     init(
-        dailyCheckInVM: DailyCheckInViewModel = DailyCheckInViewModel(),
-        personalGrowthVM: PersonalGrowthViewModel = PersonalGrowthViewModel(),
-        wellbeingVM: WellbeingViewModel = WellbeingViewModel(),
-        creativityLearningVM: CreativityLearningViewModel = CreativityLearningViewModel(),
-        socialVM: SocialViewModel = SocialViewModel(),
-        workCareerVM: WorkCareerViewModel = WorkCareerViewModel(),
+        dailyCheckInViewModel: DailyCheckInViewModel = DailyCheckInViewModel(),
+        personalGrowthViewModel: PersonalGrowthViewModel = PersonalGrowthViewModel(),
+        wellbeingViewModel: WellbeingViewModel = WellbeingViewModel(),
+        creativityLearningViewModel: CreativityLearningViewModel = CreativityLearningViewModel(),
+        socialViewModel: SocialViewModel = SocialViewModel(),
+        workCareerViewModel: WorkCareerViewModel = WorkCareerViewModel(),
         selectedDate: Date? = Date(),
         storageManager: JournalStorageManagerProtocol = JournalStorageManager()
     ) {
-        self.dailyCheckInViewModel = dailyCheckInVM
-        self.personalGrowthVM = personalGrowthVM
-        self.wellbeingVM = wellbeingVM
-        self.creativityLearningVM = creativityLearningVM
-        self.socialVM = socialVM
-        self.workCareerVM = workCareerVM
+        self.dailyCheckInViewModel = dailyCheckInViewModel
+        self.personalGrowthViewModel = personalGrowthViewModel
+        self.wellbeingViewModel = wellbeingViewModel
+        self.creativityLearningViewModel = creativityLearningViewModel
+        self.socialViewModel = socialViewModel
+        self.workCareerViewModel = workCareerViewModel
         self.selectedDate = selectedDate
         self.storageManager = storageManager
         
@@ -108,31 +108,31 @@ final class JournalCoordinatorViewModel {
         var entry = JournalEntry(date: date)
         
         entry.dailyCheckIn = dailyCheckInViewModel.toModel()
-        entry.personalGrowth = personalGrowthVM.toModel()
-        entry.wellbeing = wellbeingVM.toModel()
-        entry.creativityLearning = creativityLearningVM.toModel()
-        entry.social = socialVM.toModel()
-        entry.workCareer = workCareerVM.toModel()
+        entry.personalGrowth = personalGrowthViewModel.toModel()
+        entry.wellbeing = wellbeingViewModel.toModel()
+        entry.creativityLearning = creativityLearningViewModel.toModel()
+        entry.social = socialViewModel.toModel()
+        entry.workCareer = workCareerViewModel.toModel()
         
         return entry
     }
     
     private func updateViewModels(with entry: JournalEntry) {
         dailyCheckInViewModel = DailyCheckInViewModel(entry: entry.dailyCheckIn)
-        personalGrowthVM = PersonalGrowthViewModel(entry: entry.personalGrowth)
-        wellbeingVM = WellbeingViewModel(entry: entry.wellbeing)
-        creativityLearningVM = CreativityLearningViewModel(entry: entry.creativityLearning)
-        socialVM = SocialViewModel(entry: entry.social)
-        workCareerVM = WorkCareerViewModel(entry: entry.workCareer)
+        personalGrowthViewModel = PersonalGrowthViewModel(entry: entry.personalGrowth)
+        wellbeingViewModel = WellbeingViewModel(entry: entry.wellbeing)
+        creativityLearningViewModel = CreativityLearningViewModel(entry: entry.creativityLearning)
+        socialViewModel = SocialViewModel(entry: entry.social)
+        workCareerViewModel = WorkCareerViewModel(entry: entry.workCareer)
     }
     
     private func resetViewModels() {
         dailyCheckInViewModel.reset()
-        personalGrowthVM.reset()
-        wellbeingVM.reset()
-        creativityLearningVM.reset()
-        socialVM.reset()
-        workCareerVM.reset()
+        personalGrowthViewModel.reset()
+        wellbeingViewModel.reset()
+        creativityLearningViewModel.reset()
+        socialViewModel.reset()
+        workCareerViewModel.reset()
     }
     
     func sectionViewModel(for section: JournalSection) -> Any {
@@ -140,15 +140,15 @@ final class JournalCoordinatorViewModel {
         case .dailyCheckIn:
             return dailyCheckInViewModel
         case .personalGrowth:
-            return personalGrowthVM
+            return personalGrowthViewModel
         case .wellbeing:
-            return wellbeingVM
+            return wellbeingViewModel
         case .creativityLearning:
-            return creativityLearningVM
+            return creativityLearningViewModel
         case .social:
-            return socialVM
+            return socialViewModel
         case .workCareer:
-            return workCareerVM
+            return workCareerViewModel
         }
     }
     
@@ -164,15 +164,15 @@ final class JournalCoordinatorViewModel {
         case .dailyCheckIn:
             return dailyCheckInViewModel.isValid
         case .personalGrowth:
-            return personalGrowthVM.isValid
+            return personalGrowthViewModel.isValid
         case .wellbeing:
-            return wellbeingVM.isValid
+            return wellbeingViewModel.isValid
         case .creativityLearning:
-            return creativityLearningVM.isValid
+            return creativityLearningViewModel.isValid
         case .social:
-            return socialVM.isValid
+            return socialViewModel.isValid
         case .workCareer:
-            return workCareerVM.isValid
+            return workCareerViewModel.isValid
         }
     }
 } 

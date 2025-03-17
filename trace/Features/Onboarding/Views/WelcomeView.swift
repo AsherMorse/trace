@@ -99,19 +99,13 @@ struct WelcomeView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             WelcomeView(
-                viewModel: {
-                    let vm = FolderSelectionViewModel()
-                    return vm
-                }(),
+                viewModel: FolderSelectionViewModel(),
                 hasCompletedOnboarding: .constant(false)
             )
             .previewDisplayName("Initial State")
 
             WelcomeView(
-                viewModel: {
-                    let vm = FolderSelectionViewModel()
-                    return vm
-                }(),
+                viewModel: FolderSelectionViewModel(),
                 hasCompletedOnboarding: .constant(false)
             )
             .previewDisplayName("Folder Selected")
