@@ -2,6 +2,8 @@ import SwiftUI
 
 struct JournalActionsView: View {
     var viewModel: JournalViewModel
+    @State private var showingVoiceRecording = false
+    @State private var hasAPIKey = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -13,6 +15,14 @@ struct JournalActionsView: View {
         }
         .padding()
         .background(Theme.backgroundSecondary)
+        .onAppear {
+            checkAPIKeyAvailability()
+        }
+        .sheet(isPresented: $showingVoiceRecording) {
+            if let date = viewModel.selectedDate {
+                VoiceRecordingView(viewModel: makeVoiceAssistantViewModel())
+            }
+        }
     }
     
     private var headerView: some View {
@@ -26,6 +36,9 @@ struct JournalActionsView: View {
         VStack(spacing: 10) {
             newEntryButton
             todaysEntryButton
+            if hasAPIKey {
+                voiceAssistantButton
+            }
             recentEntriesButton
             searchButton
             resetFolderButton
@@ -44,6 +57,19 @@ struct JournalActionsView: View {
         .buttonStyle(.bordered)
         .tint(.blue)
         .help("Create a new journal entry for the selected date or today")
+    }
+    
+    private var voiceAssistantButton: some View {
+        Button(action: {
+            showingVoiceRecording = true
+        }) {
+            Label("Voice Assistant", systemImage: "mic.fill")
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.bordered)
+        .tint(.orange)
+        .help("Record a voice note and convert it to journal text")
     }
     
     private var todaysEntryButton: some View {
@@ -108,5 +134,24 @@ struct JournalActionsView: View {
     
     private func createNewEntry() {
         print("📔 createNewEntry called")
+    }
+    
+    private func checkAPIKeyAvailability() {
+        let settingsManager = AppSettingsManager()
+        hasAPIKey = settingsManager.hasAPIKey
+    }
+    
+    private func makeVoiceAssistantViewModel() -> VoiceAssistantViewModel {
+        let settingsManager = AppSettingsManager()
+        guard let apiKey = settingsManager.getAPIKey() else {
+            fatalError("API key should be available")
+        }
+        
+        return VoiceAssistantViewModel(
+            voiceRecordingService: VoiceRecordingService(),
+            openAIService: OpenAIService(apiKey: apiKey),
+            settingsManager: settingsManager,
+            journalViewModel: viewModel
+        )
     }
 } 

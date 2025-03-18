@@ -101,7 +101,7 @@ final class JournalViewModel {
     
     
     func saveEdits() async throws {
-        guard let date = selectedDate, isDirty else { return }
+        guard (selectedDate != nil), isDirty else { return }
         try await saveCurrentEntry()
     }
     
