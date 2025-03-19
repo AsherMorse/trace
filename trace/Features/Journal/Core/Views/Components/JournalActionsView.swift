@@ -19,7 +19,7 @@ struct JournalActionsView: View {
             checkAPIKeyAvailability()
         }
         .sheet(isPresented: $showingVoiceRecording) {
-            if let date = viewModel.selectedDate {
+            if let _ = viewModel.selectedDate {
                 VoiceRecordingView(viewModel: makeVoiceAssistantViewModel())
             }
         }
@@ -34,7 +34,6 @@ struct JournalActionsView: View {
     
     private var quickActionsButtons: some View {
         VStack(spacing: 10) {
-            newEntryButton
             todaysEntryButton
             if hasAPIKey {
                 voiceAssistantButton
@@ -43,20 +42,6 @@ struct JournalActionsView: View {
             searchButton
             resetFolderButton
         }
-    }
-    
-    private var newEntryButton: some View {
-        
-        Button(action: {
-            createNewEntry()
-        }) {
-            Label("Record New Entry", systemImage: "square.and.pencil")
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.bordered)
-        .tint(.blue)
-        .help("Create a new journal entry for the selected date or today")
     }
     
     private var voiceAssistantButton: some View {
@@ -130,10 +115,6 @@ struct JournalActionsView: View {
         .buttonStyle(.bordered)
         .tint(.red)
         .help("Clear the current journal folder selection")
-    }
-    
-    private func createNewEntry() {
-        print("📔 createNewEntry called")
     }
     
     private func checkAPIKeyAvailability() {
