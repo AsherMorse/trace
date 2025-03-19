@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 
 enum VoiceAssistantState: Equatable {
+    case requestingPermission
     case ready
     case recording
     case processing
@@ -10,7 +11,8 @@ enum VoiceAssistantState: Equatable {
     
     static func == (lhs: VoiceAssistantState, rhs: VoiceAssistantState) -> Bool {
         switch (lhs, rhs) {
-        case (.ready, .ready),
+        case (.requestingPermission, .requestingPermission),
+             (.ready, .ready),
              (.recording, .recording),
              (.processing, .processing),
              (.previewing, .previewing):
@@ -29,7 +31,7 @@ final class VoiceAssistantViewModel {
     let voiceRecordingService: VoiceRecordingServiceProtocol
     private let openAIService: OpenAIServiceProtocol
     private let settingsManager: AppSettingsManagerProtocol
-    private let journalViewModel: JournalViewModel
+    let journalViewModel: JournalViewModel
     
     var state: VoiceAssistantState = .ready
     var recordingURL: URL?
@@ -37,6 +39,7 @@ final class VoiceAssistantViewModel {
     var transcription: String = ""
     var generatedContent: String = ""
     var errorMessage: String = ""
+    var permissionStatus: Bool = false
     
     private var timer: Timer?
     
@@ -50,17 +53,49 @@ final class VoiceAssistantViewModel {
         self.openAIService = openAIService
         self.settingsManager = settingsManager
         self.journalViewModel = journalViewModel
+        
+        // Check initial permission status
+        if voiceRecordingService.checkPermissionStatus() == .authorized {
+            self.permissionStatus = true
+        }
+    }
+    
+    func checkMicrophonePermission() async {
+        let currentStatus = voiceRecordingService.checkPermissionStatus()
+        
+        switch currentStatus {
+        case .notDetermined:
+            state = .requestingPermission
+            permissionStatus = await voiceRecordingService.requestPermission()
+            state = permissionStatus ? .ready : .error(VoiceRecordingError.microphonePermissionDenied)
+        case .denied, .restricted:
+            permissionStatus = false
+            state = .error(VoiceRecordingError.microphonePermissionDenied)
+        case .authorized:
+            permissionStatus = true
+            state = .ready
+        @unknown default:
+            permissionStatus = false
+            state = .error(VoiceRecordingError.microphonePermissionDenied)
+        }
     }
     
     func startRecording() {
         guard state == .ready else { return }
         
-        do {
-            recordingURL = try voiceRecordingService.startRecording()
-            state = .recording
-            startTimer()
-        } catch {
-            handleError(error)
+        // First check permission
+        Task {
+            await checkMicrophonePermission()
+            
+            if permissionStatus {
+                do {
+                    recordingURL = try voiceRecordingService.startRecording()
+                    state = .recording
+                    startTimer()
+                } catch {
+                    handleError(error)
+                }
+            }
         }
     }
     
@@ -109,14 +144,14 @@ final class VoiceAssistantViewModel {
         resetState()
     }
     
-    func acceptGeneratedContent() {
+    func acceptGeneratedContent(mergeStrategy: JournalViewModel.ContentMergeStrategy = .intelligentMerge) {
         guard state == .previewing,
               !generatedContent.isEmpty else { return }
         
         Task {
             do {
                 if let date = journalViewModel.selectedDate {
-                    try journalViewModel.applyAIGeneratedContent(generatedContent, for: date)
+                    try journalViewModel.applyAIGeneratedContent(generatedContent, for: date, strategy: mergeStrategy)
                     try await journalViewModel.saveEdits()
                 }
                 resetState()
@@ -144,15 +179,29 @@ final class VoiceAssistantViewModel {
                 
                 transcription = try await service.transcribe(audioURL: url)
                 
-                guard let templateURL = Bundle.main.url(forResource: "JournalEntryFormat", withExtension: "md") else {
-                    let errorMessage = "Could not find JournalEntryFormat.md in the bundle"
+                // Try to load the template from the bundle or from the filesystem
+                var formatTemplate: String
+                if let templateURL = Bundle.main.url(forResource: "JournalEntryFormat", withExtension: "md") {
+                    // If it's in the bundle, load it from there
+                    formatTemplate = try String(contentsOf: templateURL, encoding: .utf8)
+                } else if let resourceURL = URL(string: "file:///Users/ash/Dev/trace/JournalEntryFormat.md") {
+                    // If not in bundle, try loading directly from project directory 
+                    if FileManager.default.fileExists(atPath: resourceURL.path) {
+                        formatTemplate = try String(contentsOf: resourceURL, encoding: .utf8)
+                    } else {
+                        throw NSError(
+                            domain: "VoiceAssistantViewModel",
+                            code: 1001,
+                            userInfo: [NSLocalizedDescriptionKey: "Could not find JournalEntryFormat.md"]
+                        )
+                    }
+                } else {
                     throw NSError(
                         domain: "VoiceAssistantViewModel",
                         code: 1001,
-                        userInfo: [NSLocalizedDescriptionKey: errorMessage]
+                        userInfo: [NSLocalizedDescriptionKey: "Could not find JournalEntryFormat.md"]
                     )
                 }
-                let formatTemplate = try String(contentsOf: templateURL, encoding: .utf8)
                 let currentContent = journalViewModel.currentEntry?.toMarkdown() ?? ""
                 
                 generatedContent = try await service.generateJournalContent(
@@ -173,7 +222,7 @@ final class VoiceAssistantViewModel {
         state = .error(error)
     }
     
-    private func resetState() {
+    func resetState() {
         state = .ready
         recordingURL = nil
         recordingDuration = 0

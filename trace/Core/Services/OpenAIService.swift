@@ -20,6 +20,8 @@ final class OpenAIService: OpenAIServiceProtocol {
     }
     
     func transcribe(audioURL: URL) async throws -> String {
+        await testNetwork()
+        print("Transcription endpoint: \(transcriptionEndpoint)")
         guard !apiKey.isEmpty else {
             throw OpenAIError.invalidAPIKey
         }
@@ -145,6 +147,16 @@ final class OpenAIService: OpenAIServiceProtocol {
             throw error
         } catch {
             throw OpenAIError.networkError(error)
+        }
+    }
+    
+    func testNetwork() async {
+        do {
+            let url = URL(string: "https://www.google.com")!
+            let (data, response) = try await URLSession.shared.data(from: url)
+            print("Test succeeded: \(response)")
+        } catch {
+            print("Test failed: \(error)")
         }
     }
 }

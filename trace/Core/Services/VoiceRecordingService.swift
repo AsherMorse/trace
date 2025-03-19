@@ -13,6 +13,8 @@ protocol VoiceRecordingServiceProtocol {
     var recordingURL: URL? { get }
     var recordingDuration: TimeInterval { get }
     
+    func requestPermission() async -> Bool
+    func checkPermissionStatus() -> AVAuthorizationStatus
     func startRecording() throws -> URL
     func pauseRecording() throws
     func resumeRecording() throws
@@ -21,75 +23,123 @@ protocol VoiceRecordingServiceProtocol {
 }
 
 final class VoiceRecordingService: NSObject, VoiceRecordingServiceProtocol {
-    private var audioRecorder: AVAudioRecorder?
+    private let engine = AVAudioEngine()
+    private var audioFile: AVAudioFile?
     private(set) var recordingState: RecordingState = .ready
     private(set) var recordingURL: URL?
+    private var startTime: Date?
+    private var isPaused = false
     
     var recordingDuration: TimeInterval {
-        audioRecorder?.currentTime ?? 0
+        guard let startTime = startTime, recordingState == .recording || recordingState == .paused else { return 0 }
+        return isPaused ? pausedTime : Date().timeIntervalSince(startTime)
+    }
+    
+    private var pausedTime: TimeInterval = 0
+    
+    func checkPermissionStatus() -> AVAuthorizationStatus {
+        return AVCaptureDevice.authorizationStatus(for: .audio)
+    }
+    
+    func requestPermission() async -> Bool {
+        return await withCheckedContinuation { continuation in
+            AVCaptureDevice.requestAccess(for: .audio) { granted in
+                continuation.resume(returning: granted)
+            }
+        }
     }
     
     func startRecording() throws -> URL {
-        if recordingState == .recording {
-            _ = try stopRecording()
+        // Check permissions
+        let permissionStatus = checkPermissionStatus()
+        if permissionStatus != .authorized {
+            throw VoiceRecordingError.microphonePermissionDenied
         }
         
+        // Stop any existing recording
+        if recordingState == .recording {
+            try stopRecording()
+        }
+        
+        // Configure AVAudioSession for macOS
+        #if os(macOS)
+        // On macOS, AVAudioSession is not used, but we need to make sure
+        // the audio engine is properly reset
+        engine.stop()
+        engine.reset()
+        #endif
+        
+        // Create output file
         let tempURL = createTempURL()
         recordingURL = tempURL
         
-        let settings: [String: Any] = [
-            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: 44100.0,
-            AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-        ]
+        let format = engine.inputNode.outputFormat(forBus: 0)
         
-        do {
-            audioRecorder = try AVAudioRecorder(url: tempURL, settings: settings)
-            audioRecorder?.delegate = self
+        // Create audio file
+        audioFile = try AVAudioFile(
+            forWriting: tempURL,
+            settings: [
+                AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+                AVSampleRateKey: format.sampleRate,
+                AVNumberOfChannelsKey: format.channelCount,
+                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
+                AVEncoderBitRateKey: 128000
+            ]
+        )
+        
+        // Set up tap on input node
+        engine.inputNode.installTap(onBus: 0, bufferSize: 4096, format: format) { [weak self] buffer, time in
+            guard let self = self, let audioFile = self.audioFile, self.recordingState == .recording else { return }
             
-            guard let recorder = audioRecorder, recorder.prepareToRecord() else {
-                throw VoiceRecordingError.recorderInitFailed
+            do {
+                try audioFile.write(from: buffer)
+            } catch {
+                print("Error writing audio buffer: \(error.localizedDescription)")
             }
-            
-            if !recorder.record() {
-                throw VoiceRecordingError.recordingFailed
-            }
-            
-            recordingState = .recording
-            return tempURL
-        } catch {
-            throw VoiceRecordingError.recorderInitFailed
         }
+        
+        // Prepare and start engine
+        engine.prepare()
+        try engine.start()
+        
+        recordingState = .recording
+        startTime = Date()
+        isPaused = false
+        pausedTime = 0
+        
+        return tempURL
     }
     
     func pauseRecording() throws {
-        guard recordingState == .recording, let recorder = audioRecorder else {
-            return
-        }
+        guard recordingState == .recording else { return }
         
-        recorder.pause()
+        engine.pause()
         recordingState = .paused
+        isPaused = true
+        pausedTime = Date().timeIntervalSince(startTime!)
     }
     
     func resumeRecording() throws {
-        guard recordingState == .paused, let recorder = audioRecorder else {
-            return
-        }
+        guard recordingState == .paused else { return }
         
-        if !recorder.record() {
-            throw VoiceRecordingError.recordingFailed
-        }
+        try engine.start()
         recordingState = .recording
+        isPaused = false
     }
     
     func stopRecording() throws -> URL {
-        guard let recorder = audioRecorder, let url = recordingURL else {
+        guard let url = recordingURL else {
             throw VoiceRecordingError.recordingFailed
         }
         
-        recorder.stop()
+        if engine.isRunning {
+            engine.inputNode.removeTap(onBus: 0)
+            engine.stop()
+        }
+        
         recordingState = .stopped
+        audioFile = nil
+        startTime = nil
         
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw VoiceRecordingError.fileAccessError
@@ -101,24 +151,23 @@ final class VoiceRecordingService: NSObject, VoiceRecordingServiceProtocol {
     func deleteRecording() {
         guard let url = recordingURL else { return }
         
+        if engine.isRunning {
+            engine.inputNode.removeTap(onBus: 0)
+            engine.stop()
+        }
+        
         try? FileManager.default.removeItem(at: url)
         recordingURL = nil
         recordingState = .ready
+        audioFile = nil
+        startTime = nil
+        isPaused = false
+        pausedTime = 0
     }
     
     private func createTempURL() -> URL {
         let directory = FileManager.default.temporaryDirectory
         let filename = UUID().uuidString + ".m4a"
         return directory.appendingPathComponent(filename)
-    }
-}
-
-extension VoiceRecordingService: AVAudioRecorderDelegate {
-    func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
-        recordingState = .stopped
-    }
-    
-    func audioRecorderEncodeErrorDidOccur(_ recorder: AVAudioRecorder, error: Error?) {
-        recordingState = .stopped
     }
 }

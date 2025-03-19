@@ -5,16 +5,74 @@ struct VoiceRecordingView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        VStack(spacing: 20) {
-            Spacer().frame(height: 20)
-            titleView
-            recordingStatusView
-            controlsView
-            actionButtonsView
+        switch viewModel.state {
+        case .requestingPermission:
+            PermissionRequestView(viewModel: viewModel)
+                .padding()
+                .background(Color(NSColor.windowBackgroundColor))
+                .frame(width: 400, height: 300)
+                .onAppear {
+                    // Check permission when view appears
+                    Task {
+                        await viewModel.checkMicrophonePermission()
+                    }
+                }
+        case .ready, .recording:
+            VStack(spacing: 20) {
+                Spacer().frame(height: 20)
+                titleView
+                recordingStatusView
+                controlsView
+                actionButtonsView
+            }
+            .padding()
+            .background(Color(NSColor.windowBackgroundColor))
+            .frame(width: 400, height: 300)
+            .onAppear {
+                // Check permission when view appears
+                Task {
+                    await viewModel.checkMicrophonePermission()
+                }
+            }
+        case .processing:
+            ProcessingView()
+                .padding()
+                .background(Color(NSColor.windowBackgroundColor))
+                .frame(width: 400, height: 300)
+        case .previewing:
+            GeneratedEntryPreviewView(viewModel: viewModel)
+                .padding()
+                .background(Color(NSColor.windowBackgroundColor))
+                .frame(width: 500, height: 500)
+                .onDisappear {
+                    // Check if we need to reset if it wasn't done explicitly
+                    if viewModel.state == .previewing {
+                        viewModel.resetState()
+                    }
+                }
+        case .error(let error):
+            VStack(spacing: 16) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.system(size: 40))
+                    .foregroundColor(.red)
+                
+                Text("Error")
+                    .font(.headline)
+                
+                Text(error.localizedDescription)
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+                
+                Button("Dismiss") {
+                    viewModel.resetState()
+                    dismiss()
+                }
+                .padding(.top, 8)
+            }
+            .padding()
+            .background(Color(NSColor.windowBackgroundColor))
+            .frame(width: 400, height: 300)
         }
-        .padding()
-        .background(Color(NSColor.windowBackgroundColor))
-        .frame(width: 400, height: 300)
     }
     
     private var titleView: some View {
@@ -86,13 +144,7 @@ struct VoiceRecordingView: View {
             // .disabled(viewModel.state != .recording && !viewModel.isRecordingPaused)
             
             Button {
-                do {
-                    let fileURL = try viewModel.voiceRecordingService.stopRecording()
-                    print("Audio file saved at: \(fileURL.path)")
-                    dismiss()
-                } catch {
-                    print("Error stopping recording: \(error.localizedDescription)")
-                }
+                viewModel.stopRecording()
             } label: {
                 VStack {
                     Image(systemName: "stop.circle")
@@ -116,18 +168,6 @@ struct VoiceRecordingView: View {
             }
             
             Spacer()
-            
-            if viewModel.state == .previewing {
-                Button("Accept") {
-                    viewModel.acceptGeneratedContent()
-                    dismiss()
-                }
-                .keyboardShortcut(.defaultAction)
-                
-                Button("Reject") {
-                    viewModel.rejectGeneratedContent()
-                }
-            }
         }
         .padding(.horizontal)
     }
