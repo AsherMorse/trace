@@ -4,7 +4,6 @@ struct JournalEntryView: View {
     
     @Bindable var viewModel: JournalViewModel
     
-    
     @State private var dailyCheckInViewModel = DailyCheckInViewModel()
     @State private var personalGrowthViewModel = PersonalGrowthViewModel()
     @State private var wellbeingViewModel = WellbeingViewModel()
@@ -12,11 +11,9 @@ struct JournalEntryView: View {
     @State private var socialViewModel = SocialViewModel()
     @State private var workCareerViewModel = WorkCareerViewModel()
     
-    
     @State private var selectedTab: JournalSection = .dailyCheckIn
     @State private var refreshKey = UUID()
     @FocusState private var isTextFieldFocused: Bool
-    
     
     var body: some View {
         VStack(spacing: 0) {
@@ -33,7 +30,6 @@ struct JournalEntryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
     }
-    
     
     private func contentView(for date: Date) -> some View {
         VStack(spacing: 0) {
@@ -65,7 +61,6 @@ struct JournalEntryView: View {
             refreshFromJournal()
         }
     }
-    
     
     @ViewBuilder
     private var sectionView: some View {
@@ -112,7 +107,6 @@ struct JournalEntryView: View {
         }
     }
     
-    
     private var statusBar: some View {
         HStack {
             Text(viewModel.isDirty ? "Unsaved changes" : "No changes")
@@ -128,7 +122,6 @@ struct JournalEntryView: View {
                         saveCurrentSection()
                         try await viewModel.saveEdits()
                     } catch {
-                        
                     }
                 }
             }
@@ -137,9 +130,6 @@ struct JournalEntryView: View {
             .padding()
         }
     }
-    
-    
-    
     
     private func refreshFromJournal() {
         updateDailyCheckInFromJournal()
@@ -151,7 +141,6 @@ struct JournalEntryView: View {
         refreshKey = UUID()
     }
     
-    
     private func saveCurrentSection() {
         switch selectedTab {
         case .dailyCheckIn: updateJournalFromDailyCheckIn()
@@ -162,8 +151,6 @@ struct JournalEntryView: View {
         case .workCareer: updateJournalFromWorkCareer()
         }
     }
-    
-    
     
     private func updateDailyCheckInFromJournal() {
         guard let entry = viewModel.currentEntry else { return }
@@ -179,8 +166,6 @@ struct JournalEntryView: View {
         entry.dailyCheckIn.dailyOverview = dailyCheckInViewModel.dailyOverview
         viewModel.updateEntrySection(entry)
     }
-    
-    
     
     private func updatePersonalGrowthFromJournal() {
         guard let entry = viewModel.currentEntry else { return }
@@ -199,8 +184,6 @@ struct JournalEntryView: View {
         viewModel.updateEntrySection(entry)
     }
     
-    
-    
     private func updateWellbeingFromJournal() {
         guard let entry = viewModel.currentEntry else { return }
         wellbeingViewModel.energyLevel = entry.wellbeing.energyLevel
@@ -215,8 +198,6 @@ struct JournalEntryView: View {
         entry.wellbeing.mentalHealth = wellbeingViewModel.mentalHealth
         viewModel.updateEntrySection(entry)
     }
-    
-    
     
     private func updateCreativityLearningFromJournal() {
         guard let entry = viewModel.currentEntry else { return }
@@ -233,8 +214,6 @@ struct JournalEntryView: View {
         viewModel.updateEntrySection(entry)
     }
     
-    
-    
     private func updateSocialFromJournal() {
         guard let entry = viewModel.currentEntry else { return }
         socialViewModel.meaningfulInteractions = entry.social.meaningfulInteractions
@@ -249,8 +228,6 @@ struct JournalEntryView: View {
         entry.social.socialEvents = socialViewModel.socialEvents
         viewModel.updateEntrySection(entry)
     }
-    
-    
     
     private func updateWorkCareerFromJournal() {
         guard let entry = viewModel.currentEntry else { return }

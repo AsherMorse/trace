@@ -9,7 +9,6 @@ final class CreativityLearningViewModel {
     var mediaItems: [JournalMediaItem] = []
     var id = UUID()
     
-    
     var showingAddMedia: Bool = false
     var newMediaTitle: String = ""
     var newMediaCreator: String = ""

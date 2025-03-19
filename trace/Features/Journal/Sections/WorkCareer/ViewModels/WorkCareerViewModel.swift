@@ -10,13 +10,11 @@ final class WorkCareerViewModel {
     var ideas: String = ""
     var id = UUID()
     
-    
     var showingAddWorkItem: Bool = false
     var newWorkItemTitle: String = ""
     var newWorkItemDescription: String = ""
     var newWorkItemStatus: String = "To Do"
     var newWorkItemPriority: String = "Medium"
-    
     
     var showingAddMeeting: Bool = false
     var newMeetingTitle: String = ""

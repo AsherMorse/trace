@@ -72,7 +72,7 @@ struct JournalEntry {
         var sections: [(String, String)] = []
         let lines = markdown.components(separatedBy: .newlines)
         
-        var currentSectionTitle: String? = nil
+        var currentSectionTitle: String?
         var currentSectionContent: [String] = []
         
         for line in lines {
@@ -118,7 +118,6 @@ struct JournalEntry {
         return formatter.string(from: date)
     }
 }
-
 
 struct JournalDailyCheckIn {
     var mood: String = ""
@@ -319,7 +318,7 @@ struct JournalCreativityLearning {
                 currentTitle = trimmedLine.replacingOccurrences(of: "#### ", with: "")
                 currentItem?.title = currentTitle
             } else if currentItem != nil {
-                var updatedItem = currentItem!
+                guard var updatedItem = currentItem else { continue }
                 
                 if trimmedLine.hasPrefix("Creator: ") {
                     updatedItem.creator = trimmedLine.replacingOccurrences(of: "Creator: ", with: "")
@@ -418,7 +417,7 @@ struct JournalSocial {
                 currentPerson = trimmedLine.replacingOccurrences(of: "#### ", with: "")
                 currentInteraction?.person = currentPerson
             } else if currentInteraction != nil {
-                var updatedInteraction = currentInteraction!
+                guard var updatedInteraction = currentInteraction else { continue }
                 
                 if trimmedLine.hasPrefix("Notes: ") {
                     updatedInteraction.notes = trimmedLine.replacingOccurrences(of: "Notes: ", with: "")
@@ -537,7 +536,7 @@ struct JournalWorkCareer {
                 
                 currentItem = newItem
             } else if currentItem != nil && !trimmedLine.isEmpty {
-                var updatedItem = currentItem!
+                guard var updatedItem = currentItem else { continue }
                 updatedItem.description = trimmedLine
                 currentItem = updatedItem
             }
@@ -567,7 +566,7 @@ struct JournalWorkCareer {
                 currentMeeting = JournalMeeting()
                 currentMeeting?.title = trimmedLine.replacingOccurrences(of: "#### ", with: "")
             } else if currentMeeting != nil {
-                var updatedMeeting = currentMeeting!
+                guard var updatedMeeting = currentMeeting else { continue }
                 
                 if trimmedLine.hasPrefix("Attendees: ") {
                     updatedMeeting.attendees = trimmedLine.replacingOccurrences(of: "Attendees: ", with: "")
@@ -617,12 +616,11 @@ struct JournalMeeting {
     }
 }
 
-
 private func parseSubsections(_ markdown: String) -> [(String, String)] {
     var subsections: [(String, String)] = []
     let lines = markdown.components(separatedBy: .newlines)
     
-    var currentSubsectionTitle: String? = nil
+    var currentSubsectionTitle: String?
     var currentSubsectionContent: [String] = []
     
     for line in lines {

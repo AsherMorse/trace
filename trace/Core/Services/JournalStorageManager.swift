@@ -15,7 +15,6 @@ class JournalStorageManager: JournalStorageManagerProtocol {
         setupJournalDirectory()
     }
     
-    
     func saveEntry(_ entry: JournalEntry) async throws {
         let markdownContent = entry.toMarkdown()
         try await fileService.saveEntry(markdownContent, for: entry.date)
@@ -35,7 +34,7 @@ class JournalStorageManager: JournalStorageManagerProtocol {
     }
     
     func entryExists(for date: Date) -> Bool {
-        return fileService.entryExists(for: date)
+        fileService.entryExists(for: date)
     }
     
     func getAllEntryDates() async throws -> [Date] {
@@ -71,7 +70,6 @@ class JournalStorageManager: JournalStorageManagerProtocol {
         return entryDates.sorted()
     }
     
-    
     private func setupJournalDirectory() {
         guard let folderURL = FolderManager.shared.selectedFolderURL else {
             return
@@ -91,7 +89,10 @@ class JournalStorageManager: JournalStorageManagerProtocol {
     
     private func isMonthDirectory(url: URL) -> Bool {
         let monthName = url.lastPathComponent
-        return monthName.count == 2 && Int(monthName) != nil && (1...12).contains(Int(monthName)!)
+        guard let monthNumber = Int(monthName), (1...12).contains(monthNumber) else {
+            return false
+        }
+        return monthName.count == 2
     }
     
     private func parseDate(from fileURL: URL) -> Date? {

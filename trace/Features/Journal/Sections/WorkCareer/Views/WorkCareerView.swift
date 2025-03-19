@@ -88,7 +88,6 @@ struct WorkCareerView: View {
                     }
                 }
                 
-                
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Meetings")
@@ -155,7 +154,6 @@ struct WorkCareerView: View {
                     }
                 }
                 
-                
                 JournalTextEditor(
                     title: "Challenges",
                     text: $viewModel.challenges,
@@ -178,7 +176,6 @@ struct WorkCareerView: View {
         }
     }
 }
-
 
 struct WorkItemRow: View {
     var item: JournalWorkItem
@@ -232,7 +229,6 @@ struct WorkItemRow: View {
         }
     }
 }
-
 
 struct MeetingRow: View {
     var meeting: JournalMeeting

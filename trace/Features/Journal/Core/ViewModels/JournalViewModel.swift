@@ -3,8 +3,6 @@ import SwiftUI
 @Observable
 final class JournalViewModel {
     
-    
-    
     var selectedDate: Date? {
         didSet { if selectedDate != oldValue { handleDateChange() } }
     }
@@ -15,20 +13,15 @@ final class JournalViewModel {
     var fileContent: String = ""
     var isDirty: Bool = false
     
-    
     var isLoading: Bool = false
     var hasError: Bool = false
     var errorMessage: String?
     
-    
     private let fileService: JournalFileServiceProtocol
     private let storageManager: JournalStorageManagerProtocol
     
-    
     private var autoSaveTimer: Timer?
     private let autoSaveInterval: TimeInterval = 30
-    
-    
     
     init(
         fileService: JournalFileServiceProtocol = JournalFileService(),
@@ -46,12 +39,9 @@ final class JournalViewModel {
         stopAutoSaveTimer()
     }
     
-    
-    
     func updateEntrySection(_ updatedEntry: JournalEntry) {
         currentEntry = updatedEntry
         editedContent = updatedEntry.toMarkdown()
-        
         
         isDirty = fileContent != editedContent
     }
@@ -68,10 +58,8 @@ final class JournalViewModel {
         stopAutoSaveTimer()
     }
     
-    
-    
     func getEntryURL(for date: Date) -> URL? {
-        return fileService.getEntryURL(for: date)
+        fileService.getEntryURL(for: date)
     }
     
     func formatDate(_ date: Date) -> String {
@@ -86,8 +74,6 @@ final class JournalViewModel {
         return formatter.string(from: date)
     }
     
-    
-    
     func loadAndStartEditing() {
         editedContent = fileContent
         startAutoSaveTimer()
@@ -98,10 +84,8 @@ final class JournalViewModel {
         isDirty = false
     }
     
-    
-    
     func saveEdits() async throws {
-        guard (selectedDate != nil), isDirty else { return }
+        guard selectedDate != nil, isDirty else { return }
         try await saveCurrentEntry()
     }
     
@@ -132,19 +116,15 @@ final class JournalViewModel {
         }
     }
     
-    
-    
     func startAutoSaveTimer() {
         stopAutoSaveTimer()
         
         autoSaveTimer = Timer.scheduledTimer(withTimeInterval: autoSaveInterval, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             
-            
             if !self.isDirty && self.editedContent != self.fileContent {
                 self.isDirty = true
             }
-            
             
             if self.isDirty {
                 Task {
@@ -158,8 +138,6 @@ final class JournalViewModel {
         autoSaveTimer?.invalidate()
         autoSaveTimer = nil
     }
-    
-    
     
     func loadContent(for date: Date?) {
         guard let date = date else {
@@ -196,8 +174,6 @@ final class JournalViewModel {
             }
         }
     }
-    
-    
     
     func createEntry(for date: Date) {
         guard FolderManager.shared.hasSelectedFolder else {
@@ -243,8 +219,6 @@ final class JournalViewModel {
         FolderManager.shared.resetFolderSelection()
     }
     
-    
-    
     func handleError(_ error: Error) {
         hasError = true
         errorMessage = error.localizedDescription
@@ -260,7 +234,6 @@ final class JournalViewModel {
     private func handleContentChange() {
         
         isDirty = editedContent != fileContent
-        
         
         if isDirty, let date = selectedDate,
            let entry = JournalEntry(fromMarkdown: editedContent, date: date) {

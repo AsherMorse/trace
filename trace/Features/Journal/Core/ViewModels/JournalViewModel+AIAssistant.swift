@@ -14,6 +14,6 @@ extension JournalViewModel {
     }
     
     var canUseAIAssistant: Bool {
-        return FolderManager.shared.hasSelectedFolder && selectedDate != nil
+        FolderManager.shared.hasSelectedFolder && selectedDate != nil
     }
 } 

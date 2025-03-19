@@ -68,7 +68,6 @@ final class FolderManager {
         }
     }
 
-
     private func loadSavedFolder() {
         let savedBookmarkData = UserDefaults.standard.data(forKey: UserDefaultsKeys.selectedFolderBookmark)
 

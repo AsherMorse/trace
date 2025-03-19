@@ -31,9 +31,17 @@ final class CalendarViewModel: ObservableObject {
     
     var weekdaySymbols: [String] {
         let formatter = DateFormatter().with { $0.dateFormat = "EEE" }
-        let weekdays = (1...7).map { formatter.string(from: calendar.date(from: DateComponents(weekday: $0))!) }
+        
+        // Safely create weekday strings
+        let weekdays = (1...7).compactMap { weekday -> String? in
+            guard let date = calendar.date(from: DateComponents(weekday: weekday)) else {
+                return "???" // Fallback for unexpected errors
+            }
+            return formatter.string(from: date)
+        }
+        
         let firstWeekday = calendar.firstWeekday
-        return firstWeekday > 1 ? Array(weekdays[(firstWeekday-1)...] + weekdays[..<(firstWeekday-1)]) : weekdays
+        return firstWeekday > 1 ? Array(weekdays[(firstWeekday - 1)...] + weekdays[..<(firstWeekday - 1)]) : weekdays
     }
     
     var days: [CalendarDay] {

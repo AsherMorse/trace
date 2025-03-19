@@ -2,6 +2,7 @@ import Foundation
 
 enum OpenAIError: Error, LocalizedError {
     case invalidAPIKey
+    case invalidURL
     case transcriptionFailed
     case contentGenerationFailed
     case networkError(Error)
@@ -11,6 +12,8 @@ enum OpenAIError: Error, LocalizedError {
         switch self {
         case .invalidAPIKey:
             return "Invalid or missing OpenAI API key"
+        case .invalidURL:
+            return "Invalid URL for OpenAI API endpoint"
         case .transcriptionFailed:
             return "Failed to transcribe audio"
         case .contentGenerationFailed:

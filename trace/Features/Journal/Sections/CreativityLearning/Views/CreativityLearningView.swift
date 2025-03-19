@@ -19,7 +19,6 @@ struct CreativityLearningView: View {
                     minHeight: 100
                 )
                 
-                
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Books & Media")
@@ -104,7 +103,6 @@ struct CreativityLearningView: View {
         }
     }
 }
-
 
 struct MediaItemRow: View {
     var item: JournalMediaItem

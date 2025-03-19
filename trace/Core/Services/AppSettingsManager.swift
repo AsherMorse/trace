@@ -15,10 +15,14 @@ final class AppSettingsManager: AppSettingsManagerProtocol {
     }
     
     func saveAPIKey(_ apiKey: String) throws {
+        guard let apiKeyData = apiKey.data(using: .utf8) else {
+            throw NSError(domain: "AppSettingsManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode API key"])
+        }
+        
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: KeychainKeys.openAIAPIKey,
-            kSecValueData as String: apiKey.data(using: .utf8)!
+            kSecValueData as String: apiKeyData
         ]
         
         SecItemDelete(query as CFDictionary)

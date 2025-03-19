@@ -3,7 +3,11 @@ import AVFoundation
 
 protocol OpenAIServiceProtocol {
     func transcribe(audioURL: URL) async throws -> String
-    func generateJournalContent(transcription: String, currentEntry: String?, formatTemplate: String) async throws -> String
+    func generateJournalContent(
+        transcription: String, 
+        currentEntry: String?, 
+        formatTemplate: String
+    ) async throws -> String
 }
 
 final class OpenAIService: OpenAIServiceProtocol {
@@ -20,7 +24,11 @@ final class OpenAIService: OpenAIServiceProtocol {
             throw OpenAIError.invalidAPIKey
         }
         
-        var request = URLRequest(url: URL(string: transcriptionEndpoint)!)
+        guard let transcriptionURL = URL(string: transcriptionEndpoint) else {
+            throw OpenAIError.invalidURL
+        }
+        
+        var request = URLRequest(url: transcriptionURL)
         request.httpMethod = "POST"
         request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         
@@ -29,19 +37,21 @@ final class OpenAIService: OpenAIServiceProtocol {
         
         var data = Data()
         
-        data.append("--\(boundary)\r\n".data(using: .utf8)!)
-        data.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n".data(using: .utf8)!)
-        data.append("whisper-1\r\n".data(using: .utf8)!)
+        data.append(Data("--\(boundary)\r\n".utf8))
+        data.append(Data("Content-Disposition: form-data; name=\"model\"\r\n\r\n".utf8))
+        data.append(Data("whisper-1\r\n".utf8))
         
-        data.append("--\(boundary)\r\n".data(using: .utf8)!)
-        data.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(audioURL.lastPathComponent)\"\r\n".data(using: .utf8)!)
-        data.append("Content-Type: audio/mpeg\r\n\r\n".data(using: .utf8)!)
+        data.append(Data("--\(boundary)\r\n".utf8))
+        let fileName = audioURL.lastPathComponent
+        let fileDisposition = "Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName)\"\r\n"
+        data.append(Data(fileDisposition.utf8))
+        data.append(Data("Content-Type: audio/mpeg\r\n\r\n".utf8))
         
         do {
             let audioData = try Data(contentsOf: audioURL)
             data.append(audioData)
-            data.append("\r\n".data(using: .utf8)!)
-            data.append("--\(boundary)--\r\n".data(using: .utf8)!)
+            data.append(Data("\r\n".utf8))
+            data.append(Data("--\(boundary)--\r\n".utf8))
             
             request.httpBody = data
             
@@ -62,12 +72,20 @@ final class OpenAIService: OpenAIServiceProtocol {
         }
     }
     
-    func generateJournalContent(transcription: String, currentEntry: String?, formatTemplate: String) async throws -> String {
+    func generateJournalContent(
+        transcription: String, 
+        currentEntry: String?, 
+        formatTemplate: String
+    ) async throws -> String {
         guard !apiKey.isEmpty else {
             throw OpenAIError.invalidAPIKey
         }
         
-        var request = URLRequest(url: URL(string: completionEndpoint)!)
+        guard let completionURL = URL(string: completionEndpoint) else {
+            throw OpenAIError.invalidURL
+        }
+        
+        var request = URLRequest(url: completionURL)
         request.httpMethod = "POST"
         request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -75,10 +93,25 @@ final class OpenAIService: OpenAIServiceProtocol {
         let currentEntryText = currentEntry ?? "No previous content"
         
         let messages: [[String: String]] = [
-            ["role": "system", "content": "You are a helpful assistant that converts spoken journal entries into formatted text. Maintain the user's tone and style. Follow the provided format."],
-            ["role": "user", "content": "Here is the format template for the journal entry:\n\n\(formatTemplate)"],
-            ["role": "user", "content": "Here is the current journal entry content (if any):\n\n\(currentEntryText)"],
-            ["role": "user", "content": "Here is my transcribed voice note. Please convert it into a journal entry following the format:\n\n\(transcription)"]
+            [
+                "role": "system", 
+                "content": "You are a helpful assistant that converts spoken journal entries into formatted text. " +
+                           "Maintain the user's tone and style. Follow the provided format."
+            ],
+            [
+                "role": "user", 
+                "content": "Here is the format template for the journal entry:\n\n\(formatTemplate)"
+            ],
+            [
+                "role": "user", 
+                "content": "Here is the current journal entry content (if any):\n\n\(currentEntryText)"
+            ],
+            [
+                "role": "user", 
+                "content": "Here is my transcribed voice note. " +
+                           "Please convert it into a journal entry following the format:" +
+                           "\n\n\(transcription)"
+            ]
         ]
         
         let requestBody: [String: Any] = [

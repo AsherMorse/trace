@@ -144,7 +144,15 @@ final class VoiceAssistantViewModel {
                 
                 transcription = try await service.transcribe(audioURL: url)
                 
-                let formatTemplate = try String(contentsOf: Bundle.main.url(forResource: "JournalEntryFormat", withExtension: "md")!, encoding: .utf8)
+                guard let templateURL = Bundle.main.url(forResource: "JournalEntryFormat", withExtension: "md") else {
+                    let errorMessage = "Could not find JournalEntryFormat.md in the bundle"
+                    throw NSError(
+                        domain: "VoiceAssistantViewModel",
+                        code: 1001,
+                        userInfo: [NSLocalizedDescriptionKey: errorMessage]
+                    )
+                }
+                let formatTemplate = try String(contentsOf: templateURL, encoding: .utf8)
                 let currentContent = journalViewModel.currentEntry?.toMarkdown() ?? ""
                 
                 generatedContent = try await service.generateJournalContent(
@@ -154,7 +162,6 @@ final class VoiceAssistantViewModel {
                 )
                 
                 state = .previewing
-                
             } catch {
                 handleError(error)
             }
