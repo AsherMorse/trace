@@ -55,6 +55,14 @@ struct JournalEntryView: View {
             viewModel.loadContent(for: date)
             refreshFromJournal()
             viewModel.startAutoSaveTimer()
+            
+            NotificationCenter.default.addObserver(
+                forName: .journalEntryUpdated,
+                object: nil,
+                queue: .main
+            ) { _ in
+                self.refreshFromJournal()
+            }
         }
         .onChange(of: date) { _, newValue in
             viewModel.loadContent(for: newValue)
@@ -132,12 +140,20 @@ struct JournalEntryView: View {
     }
     
     private func refreshFromJournal() {
+        guard let entry = viewModel.currentEntry else { return }
+        
         updateDailyCheckInFromJournal()
         updatePersonalGrowthFromJournal()
         updateWellbeingFromJournal()
         updateCreativityLearningFromJournal()
         updateSocialFromJournal()
         updateWorkCareerFromJournal()
+        
+        // Update viewModel references for deletion functionality
+        creativityLearningViewModel.journalViewModel = viewModel
+        socialViewModel.journalViewModel = viewModel
+        workCareerViewModel.journalViewModel = viewModel
+        
         refreshKey = UUID()
     }
     
@@ -204,6 +220,7 @@ struct JournalEntryView: View {
         creativityLearningViewModel.projects = entry.creativityLearning.projects
         creativityLearningViewModel.learningLog = entry.creativityLearning.learningLog
         creativityLearningViewModel.ideas = entry.creativityLearning.ideas
+        creativityLearningViewModel.mediaItems = entry.creativityLearning.booksMedia
     }
     
     private func updateJournalFromCreativityLearning() {
@@ -211,6 +228,7 @@ struct JournalEntryView: View {
         entry.creativityLearning.projects = creativityLearningViewModel.projects
         entry.creativityLearning.learningLog = creativityLearningViewModel.learningLog
         entry.creativityLearning.ideas = creativityLearningViewModel.ideas
+        entry.creativityLearning.booksMedia = creativityLearningViewModel.mediaItems
         viewModel.updateEntrySection(entry)
     }
     

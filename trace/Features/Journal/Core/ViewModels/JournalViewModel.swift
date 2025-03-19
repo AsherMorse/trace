@@ -17,6 +17,11 @@ final class JournalViewModel {
     var hasError: Bool = false
     var errorMessage: String?
     
+    // For confirmation dialogs
+    var showingDeleteConfirmation = false
+    var itemToDeleteType = ""
+    var itemToDeleteIndex = -1
+    
     private let fileService: JournalFileServiceProtocol
     private let storageManager: JournalStorageManagerProtocol
     
@@ -44,6 +49,9 @@ final class JournalViewModel {
         editedContent = updatedEntry.toMarkdown()
         
         isDirty = fileContent != editedContent
+        
+        // Notify observers of content change
+        NotificationCenter.default.post(name: .journalEntryUpdated, object: nil)
     }
     
     func reset() {
@@ -238,6 +246,48 @@ final class JournalViewModel {
         if isDirty, let date = selectedDate,
            let entry = JournalEntry(fromMarkdown: editedContent, date: date) {
             currentEntry = entry
+        }
+    }
+    
+    // MARK: - Item deletion methods
+    
+    func deleteMediaItem(at index: Int) {
+        guard var entry = currentEntry, 
+              index >= 0 && index < entry.creativityLearning.booksMedia.count else { return }
+        entry.removeMediaItem(at: index)
+        updateEntrySection(entry)
+        Task { @MainActor in
+            try? await saveCurrentEntry()
+        }
+    }
+    
+    func deleteInteraction(at index: Int) {
+        guard var entry = currentEntry,
+              index >= 0 && index < entry.social.meaningfulInteractions.count else { return }
+        entry.removeInteraction(at: index)
+        updateEntrySection(entry)
+        Task { @MainActor in
+            try? await saveCurrentEntry()
+        }
+    }
+    
+    func deleteWorkItem(at index: Int) {
+        guard var entry = currentEntry,
+              index >= 0 && index < entry.workCareer.workItems.count else { return }
+        entry.removeWorkItem(at: index)
+        updateEntrySection(entry)
+        Task { @MainActor in
+            try? await saveCurrentEntry()
+        }
+    }
+    
+    func deleteMeeting(at index: Int) {
+        guard var entry = currentEntry,
+              index >= 0 && index < entry.workCareer.meetings.count else { return }
+        entry.removeMeeting(at: index)
+        updateEntrySection(entry)
+        Task { @MainActor in
+            try? await saveCurrentEntry()
         }
     }
 } 

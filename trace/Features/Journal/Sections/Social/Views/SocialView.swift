@@ -7,13 +7,21 @@ struct SocialView: View {
         SectionContainer {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Meaningful Interactions")
-                        .font(.headline)
-                    
-                    if !viewModel.meaningfulInteractions.isEmpty {
-                        ForEach(viewModel.meaningfulInteractions, id: \.person) { interaction in
-                            InteractionRow(interaction: interaction)
+                    HStack {
+                        Text("Meaningful Interactions")
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            viewModel.showingAddInteraction = true
+                        }) {
+                            HStack {
+                                Image(systemName: "plus")
+                                Text("Add Interaction")
+                            }
                         }
+                        .padding(.vertical, 4)
                     }
                     
                     if viewModel.showingAddInteraction {
@@ -40,16 +48,22 @@ struct SocialView: View {
                         .padding(8)
                         .background(Color(NSColor.textBackgroundColor))
                         .cornerRadius(8)
+                    }
+                    
+                    if viewModel.meaningfulInteractions.isEmpty {
+                        Text("No meaningful interactions")
+                            .foregroundColor(.secondary)
+                            .font(.caption)
+                            .padding(.top, 4)
                     } else {
-                        Button(action: {
-                            viewModel.showingAddInteraction = true
-                        }) {
-                            HStack {
-                                Image(systemName: "plus")
-                                Text("Add Interaction")
-                            }
+                        ForEach(Array(zip(viewModel.meaningfulInteractions.indices, viewModel.meaningfulInteractions)), id: \.0) { index, interaction in
+                            InteractionRow(
+                                interaction: interaction,
+                                onDelete: {
+                                    viewModel.journalViewModel?.deleteInteraction(at: index)
+                                }
+                            )
                         }
-                        .padding(.vertical, 4)
                     }
                 }
                 
@@ -72,11 +86,37 @@ struct SocialView: View {
 
 struct InteractionRow: View {
     var interaction: JournalInteraction
+    var onDelete: () -> Void
+    
+    @State private var showingDeleteConfirmation = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(interaction.person)
-                .font(.headline)
+            HStack {
+                Text(interaction.person)
+                    .font(.headline)
+                
+                Spacer()
+                
+                Button(action: {
+                    showingDeleteConfirmation = true
+                }) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(.plain)
+                .help("Delete interaction")
+                .alert(isPresented: $showingDeleteConfirmation) {
+                    Alert(
+                        title: Text("Delete interaction with \(interaction.person)?"),
+                        message: Text("This action cannot be undone."),
+                        primaryButton: .destructive(Text("Delete")) {
+                            onDelete()
+                        },
+                        secondaryButton: .cancel()
+                    )
+                }
+            }
             
             if !interaction.notes.isEmpty {
                 Text(interaction.notes)
@@ -94,4 +134,4 @@ struct InteractionRow: View {
     SocialView(viewModel: SocialViewModel())
         .frame(width: 600)
         .padding()
-} 
+}

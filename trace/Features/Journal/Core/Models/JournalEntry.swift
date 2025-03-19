@@ -1,5 +1,31 @@
 import Foundation
 
+extension Notification.Name {
+    static let journalEntryUpdated = Notification.Name("journalEntryUpdated")
+}
+
+extension JournalEntry {
+    mutating func removeMediaItem(at index: Int) {
+        guard index >= 0 && index < creativityLearning.booksMedia.count else { return }
+        creativityLearning.booksMedia.remove(at: index)
+    }
+    
+    mutating func removeInteraction(at index: Int) {
+        guard index >= 0 && index < social.meaningfulInteractions.count else { return }
+        social.meaningfulInteractions.remove(at: index)
+    }
+    
+    mutating func removeWorkItem(at index: Int) {
+        guard index >= 0 && index < workCareer.workItems.count else { return }
+        workCareer.workItems.remove(at: index)
+    }
+    
+    mutating func removeMeeting(at index: Int) {
+        guard index >= 0 && index < workCareer.meetings.count else { return }
+        workCareer.meetings.remove(at: index)
+    }
+}
+
 struct JournalEntry {
     let date: Date
     var dailyCheckIn: JournalDailyCheckIn

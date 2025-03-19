@@ -85,10 +85,16 @@ struct CreativityLearningView: View {
                             .font(.caption)
                             .padding(.top, 4)
                     } else {
-                        ForEach(0..<viewModel.mediaItems.count, id: \.self) { index in
-                            MediaItemRow(item: viewModel.mediaItems[index]) { updatedStatus in
-                                viewModel.updateMediaItemStatus(index: index, status: updatedStatus)
-                            }
+                        ForEach(Array(zip(viewModel.mediaItems.indices, viewModel.mediaItems)), id: \.0) { index, item in
+                            MediaItemRow(
+                                item: item,
+                                onStatusUpdate: { updatedStatus in
+                                    viewModel.updateMediaItemStatus(index: index, status: updatedStatus)
+                                },
+                                onDelete: {
+                                    viewModel.journalViewModel?.deleteMediaItem(at: index)
+                                }
+                            )
                         }
                     }
                 }
@@ -107,6 +113,9 @@ struct CreativityLearningView: View {
 struct MediaItemRow: View {
     var item: JournalMediaItem
     var onStatusUpdate: (String) -> Void
+    var onDelete: () -> Void
+    
+    @State private var showingDeleteConfirmation = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -135,6 +144,25 @@ struct MediaItemRow: View {
                 }
                 .frame(maxWidth: 150)
                 .pickerStyle(MenuPickerStyle())
+                
+                Button(action: {
+                    showingDeleteConfirmation = true
+                }) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(.plain)
+                .help("Delete item")
+                .alert(isPresented: $showingDeleteConfirmation) {
+                    Alert(
+                        title: Text("Delete \(item.title)?"),
+                        message: Text("This action cannot be undone."),
+                        primaryButton: .destructive(Text("Delete")) {
+                            onDelete()
+                        },
+                        secondaryButton: .cancel()
+                    )
+                }
             }
             
             if !item.notes.isEmpty {
@@ -154,4 +182,4 @@ struct MediaItemRow: View {
     CreativityLearningView(viewModel: CreativityLearningViewModel())
         .frame(width: 600)
         .padding()
-} 
+}

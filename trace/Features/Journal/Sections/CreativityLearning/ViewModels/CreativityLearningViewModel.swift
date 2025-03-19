@@ -9,6 +9,8 @@ final class CreativityLearningViewModel {
     var mediaItems: [JournalMediaItem] = []
     var id = UUID()
     
+    weak var journalViewModel: JournalViewModel?
+    
     var showingAddMedia: Bool = false
     var newMediaTitle: String = ""
     var newMediaCreator: String = ""
@@ -19,13 +21,14 @@ final class CreativityLearningViewModel {
         !ideas.isEmpty || !learningLog.isEmpty || !projects.isEmpty || !mediaItems.isEmpty
     }
     
-    init(entry: JournalCreativityLearning? = nil) {
+    init(entry: JournalCreativityLearning? = nil, journalViewModel: JournalViewModel? = nil) {
         if let entry = entry {
             self.ideas = entry.ideas
             self.learningLog = entry.learningLog
             self.projects = entry.projects
             self.mediaItems = entry.booksMedia
         }
+        self.journalViewModel = journalViewModel
     }
     
     func toModel() -> JournalCreativityLearning {

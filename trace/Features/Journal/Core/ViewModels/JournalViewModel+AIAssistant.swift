@@ -1,6 +1,22 @@
 import Foundation
+import SwiftUI
 
 extension JournalViewModel {
+    func updateSectionViewModels() -> (CreativityLearningViewModel, SocialViewModel, WorkCareerViewModel) {
+        guard let entry = currentEntry else {
+            return (
+                CreativityLearningViewModel(journalViewModel: self),
+                SocialViewModel(journalViewModel: self),
+                WorkCareerViewModel(journalViewModel: self)
+            )
+        }
+        
+        return (
+            CreativityLearningViewModel(entry: entry.creativityLearning, journalViewModel: self),
+            SocialViewModel(entry: entry.social, journalViewModel: self),
+            WorkCareerViewModel(entry: entry.workCareer, journalViewModel: self)
+        )
+    }
     enum ContentMergeStrategy {
         case replace
         case append

@@ -7,6 +7,8 @@ final class SocialViewModel {
     var socialEvents: String = ""
     var id = UUID()
     
+    weak var journalViewModel: JournalViewModel?
+    
     var newInteractionPerson: String = ""
     var newInteractionNotes: String = ""
     var showingAddInteraction: Bool = false
@@ -19,12 +21,13 @@ final class SocialViewModel {
         !newInteractionPerson.isEmpty
     }
     
-    init(entry: JournalSocial? = nil) {
+    init(entry: JournalSocial? = nil, journalViewModel: JournalViewModel? = nil) {
         if let entry = entry {
             self.meaningfulInteractions = entry.meaningfulInteractions
             self.relationshipUpdates = entry.relationshipUpdates
             self.socialEvents = entry.socialEvents
         }
+        self.journalViewModel = journalViewModel
     }
     
     func toModel() -> JournalSocial {

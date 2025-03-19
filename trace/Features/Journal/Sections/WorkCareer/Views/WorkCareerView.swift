@@ -82,8 +82,13 @@ struct WorkCareerView: View {
                             .font(.caption)
                             .padding(.top, 4)
                     } else {
-                        ForEach(0..<viewModel.items.count, id: \.self) { index in
-                            WorkItemRow(item: viewModel.items[index])
+                        ForEach(Array(zip(viewModel.items.indices, viewModel.items)), id: \.0) { index, item in
+                            WorkItemRow(
+                                item: item,
+                                onDelete: {
+                                    viewModel.journalViewModel?.deleteWorkItem(at: index)
+                                }
+                            )
                         }
                     }
                 }
@@ -148,8 +153,13 @@ struct WorkCareerView: View {
                             .font(.caption)
                             .padding(.top, 4)
                     } else {
-                        ForEach(0..<viewModel.meetings.count, id: \.self) { index in
-                            MeetingRow(meeting: viewModel.meetings[index])
+                        ForEach(Array(zip(viewModel.meetings.indices, viewModel.meetings)), id: \.0) { index, meeting in
+                            MeetingRow(
+                                meeting: meeting,
+                                onDelete: {
+                                    viewModel.journalViewModel?.deleteMeeting(at: index)
+                                }
+                            )
                         }
                     }
                 }
@@ -179,6 +189,9 @@ struct WorkCareerView: View {
 
 struct WorkItemRow: View {
     var item: JournalWorkItem
+    var onDelete: () -> Void
+    
+    @State private var showingDeleteConfirmation = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -195,6 +208,25 @@ struct WorkItemRow: View {
                     .background(statusColor.opacity(0.2))
                     .foregroundColor(statusColor)
                     .cornerRadius(4)
+                
+                Button(action: {
+                    showingDeleteConfirmation = true
+                }) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(.plain)
+                .help("Delete item")
+                .alert(isPresented: $showingDeleteConfirmation) {
+                    Alert(
+                        title: Text("Delete work item: \(item.title)?"),
+                        message: Text("This action cannot be undone."),
+                        primaryButton: .destructive(Text("Delete")) {
+                            onDelete()
+                        },
+                        secondaryButton: .cancel()
+                    )
+                }
             }
             
             if !item.description.isEmpty {
@@ -232,11 +264,37 @@ struct WorkItemRow: View {
 
 struct MeetingRow: View {
     var meeting: JournalMeeting
+    var onDelete: () -> Void
+    
+    @State private var showingDeleteConfirmation = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(meeting.title)
-                .font(.headline)
+            HStack {
+                Text(meeting.title)
+                    .font(.headline)
+                
+                Spacer()
+                
+                Button(action: {
+                    showingDeleteConfirmation = true
+                }) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(.plain)
+                .help("Delete meeting")
+                .alert(isPresented: $showingDeleteConfirmation) {
+                    Alert(
+                        title: Text("Delete meeting: \(meeting.title)?"),
+                        message: Text("This action cannot be undone."),
+                        primaryButton: .destructive(Text("Delete")) {
+                            onDelete()
+                        },
+                        secondaryButton: .cancel()
+                    )
+                }
+            }
             
             if !meeting.attendees.isEmpty {
                 HStack(alignment: .top, spacing: 4) {

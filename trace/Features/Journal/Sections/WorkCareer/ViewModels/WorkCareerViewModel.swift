@@ -10,6 +10,8 @@ final class WorkCareerViewModel {
     var ideas: String = ""
     var id = UUID()
     
+    weak var journalViewModel: JournalViewModel?
+    
     var showingAddWorkItem: Bool = false
     var newWorkItemTitle: String = ""
     var newWorkItemDescription: String = ""
@@ -26,7 +28,7 @@ final class WorkCareerViewModel {
         !items.isEmpty || !meetings.isEmpty || !challenges.isEmpty || !achievements.isEmpty
     }
     
-    init(entry: JournalWorkCareer? = nil) {
+    init(entry: JournalWorkCareer? = nil, journalViewModel: JournalViewModel? = nil) {
         if let entry = entry {
             self.items = entry.workItems
             self.meetings = entry.meetings
@@ -34,6 +36,7 @@ final class WorkCareerViewModel {
             self.achievements = entry.wins
             self.ideas = entry.workIdeas
         }
+        self.journalViewModel = journalViewModel
     }
     
     func toModel() -> JournalWorkCareer {
