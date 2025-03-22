@@ -63,11 +63,13 @@ extension JournalViewModel {
             editedContent = combinedMarkdown
             if let entry = JournalEntry(fromMarkdown: combinedMarkdown, date: date) {
                 self.currentEntry = entry
+                self.isDirty = fileContent != editedContent
             }
         } else {
             editedContent = markdown
             if let entry = JournalEntry(fromMarkdown: markdown, date: date) {
                 self.currentEntry = entry
+                self.isDirty = fileContent != editedContent
             }
         }
     }

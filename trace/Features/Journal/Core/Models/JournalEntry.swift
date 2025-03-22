@@ -4,6 +4,18 @@ extension Notification.Name {
     static let journalEntryUpdated = Notification.Name("journalEntryUpdated")
 }
 
+extension JournalEntry: Equatable {
+    static func == (lhs: JournalEntry, rhs: JournalEntry) -> Bool {
+        return lhs.date == rhs.date &&
+               lhs.dailyCheckIn == rhs.dailyCheckIn &&
+               lhs.personalGrowth == rhs.personalGrowth &&
+               lhs.wellbeing == rhs.wellbeing &&
+               lhs.creativityLearning == rhs.creativityLearning &&
+               lhs.social == rhs.social &&
+               lhs.workCareer == rhs.workCareer
+    }
+}
+
 extension JournalEntry {
     mutating func removeMediaItem(at index: Int) {
         guard index >= 0 && index < creativityLearning.booksMedia.count else { return }
@@ -145,7 +157,7 @@ struct JournalEntry {
     }
 }
 
-struct JournalDailyCheckIn {
+struct JournalDailyCheckIn: Equatable {
     var mood: String = ""
     var todaysHighlight: String = ""
     var dailyOverview: String = ""
@@ -186,7 +198,7 @@ struct JournalDailyCheckIn {
     }
 }
 
-struct JournalPersonalGrowth {
+struct JournalPersonalGrowth: Equatable {
     var reflections: String = ""
     var achievements: String = ""
     var challenges: String = ""
@@ -233,7 +245,7 @@ struct JournalPersonalGrowth {
     }
 }
 
-struct JournalWellbeing {
+struct JournalWellbeing: Equatable {
     var energyLevel: Int = 5
     var physicalActivity: String = ""
     var mentalHealth: String = ""
@@ -276,7 +288,7 @@ struct JournalWellbeing {
     }
 }
 
-struct JournalCreativityLearning {
+struct JournalCreativityLearning: Equatable {
     var ideas: String = ""
     var learningLog: String = ""
     var booksMedia: [JournalMediaItem] = []
@@ -366,7 +378,7 @@ struct JournalCreativityLearning {
     }
 }
 
-struct JournalMediaItem {
+struct JournalMediaItem: Equatable {
     var title: String = ""
     var creator: String = ""
     var status: String = ""
@@ -381,7 +393,7 @@ struct JournalMediaItem {
     }
 }
 
-struct JournalSocial {
+struct JournalSocial: Equatable {
     var meaningfulInteractions: [JournalInteraction] = []
     var relationshipUpdates: String = ""
     var socialEvents: String = ""
@@ -461,7 +473,7 @@ struct JournalSocial {
     }
 }
 
-struct JournalInteraction {
+struct JournalInteraction: Equatable {
     var person: String = ""
     var notes: String = ""
     
@@ -472,7 +484,7 @@ struct JournalInteraction {
     }
 }
 
-struct JournalWorkCareer {
+struct JournalWorkCareer: Equatable {
     var workItems: [JournalWorkItem] = []
     var meetings: [JournalMeeting] = []
     var challenges: String = ""
@@ -614,7 +626,7 @@ struct JournalWorkCareer {
     }
 }
 
-struct JournalWorkItem {
+struct JournalWorkItem: Equatable {
     var title: String = ""
     var status: String = ""
     var priority: String = ""
@@ -627,7 +639,7 @@ struct JournalWorkItem {
     }
 }
 
-struct JournalMeeting {
+struct JournalMeeting: Equatable {
     var title: String = ""
     var attendees: String = ""
     var notes: String = ""

@@ -6,7 +6,9 @@ final class JournalViewModel {
     var selectedDate: Date? {
         didSet { if selectedDate != oldValue { handleDateChange() } }
     }
-    var currentEntry: JournalEntry?
+    var currentEntry: JournalEntry? {
+        didSet { if currentEntry != oldValue { handleEntryChange() } }
+    }
     var editedContent: String = "" {
         didSet { handleContentChange() }
     }
@@ -246,6 +248,19 @@ final class JournalViewModel {
         if isDirty, let date = selectedDate,
            let entry = JournalEntry(fromMarkdown: editedContent, date: date) {
             currentEntry = entry
+        }
+    }
+    
+    private func handleEntryChange() {
+        // Update the edited content if it's coming from a direct entry change
+        // (like from VoiceAssistant or other components)
+        if let entry = currentEntry {
+            let newContent = entry.toMarkdown()
+            if editedContent != newContent {
+                editedContent = newContent
+            }
+            
+            isDirty = fileContent != editedContent
         }
     }
     
