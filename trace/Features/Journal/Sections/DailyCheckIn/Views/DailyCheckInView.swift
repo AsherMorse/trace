@@ -21,12 +21,13 @@ struct DailyCheckInView: View {
                                     .font(.subheadline)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
+                                    .foregroundColor(viewModel.mood == mood ? .white : Theme.primary)
                             }
                             .buttonStyle(.plain)
                             .background(
-                                RoundedRectangle(cornerRadius: 8)
+                                RoundedRectangle(cornerRadius: 6)
                                     .fill(viewModel.mood == mood ? 
-                                          Color(NSColor.controlBackgroundColor) : 
+                                          Color.accentColor : 
                                           Color.clear)
                             )
                         }
