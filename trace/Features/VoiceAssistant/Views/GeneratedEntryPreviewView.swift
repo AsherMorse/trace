@@ -80,7 +80,6 @@ struct GeneratedEntryPreviewView: View {
     }
     
     private func isEmptySection(_ section: Any) -> Bool {
-        // Use mirror to check if the section has an isEmpty property
         let mirror = Mirror(reflecting: section)
         if let isEmpty = mirror.children.first(where: { $0.label == "isEmpty" })?.value as? Bool {
             return isEmpty
@@ -90,10 +89,8 @@ struct GeneratedEntryPreviewView: View {
     
     private func getVisibleSections(_ entry: JournalEntry) -> [(SectionData, Bool)] {
         var sections: [(SectionData, Bool)] = []
-        let currentEntry = viewModel.journalViewModel.currentEntry
         
-        // Daily Check-in
-        if !isEmptySection(entry.dailyCheckIn) {
+        if !entry.dailyCheckIn.isEmpty {
             sections.append((
                 SectionData(
                     title: "Daily Check-in",
@@ -103,12 +100,11 @@ struct GeneratedEntryPreviewView: View {
                         entry.dailyCheckIn.dailyOverview.isEmpty ? nil : ("Daily Overview", entry.dailyCheckIn.dailyOverview)
                     ].compactMap { $0 }
                 ),
-                currentEntry?.dailyCheckIn.isEmpty ?? true
+                false
             ))
         }
         
-        // Personal Growth
-        if !isEmptySection(entry.personalGrowth) {
+        if !entry.personalGrowth.isEmpty {
             sections.append((
                 SectionData(
                     title: "Personal Growth",
@@ -119,12 +115,11 @@ struct GeneratedEntryPreviewView: View {
                         entry.personalGrowth.goals.isEmpty ? nil : ("Goals", entry.personalGrowth.goals)
                     ].compactMap { $0 }
                 ),
-                currentEntry?.personalGrowth.isEmpty ?? true
+                false
             ))
         }
         
-        // Wellbeing
-        if !isEmptySection(entry.wellbeing) {
+        if !entry.wellbeing.isEmpty {
             sections.append((
                 SectionData(
                     title: "Wellbeing",
@@ -136,12 +131,11 @@ struct GeneratedEntryPreviewView: View {
                         entry.wellbeing.nutrition.isEmpty ? nil : ("Nutrition", entry.wellbeing.nutrition)
                     ].compactMap { $0 }
                 ),
-                currentEntry?.wellbeing.isEmpty ?? true
+                false
             ))
         }
         
-        // Creativity & Learning
-        if !isEmptySection(entry.creativityLearning) {
+        if !entry.creativityLearning.isEmpty {
             sections.append((
                 SectionData(
                     title: "Creativity & Learning",
@@ -151,12 +145,11 @@ struct GeneratedEntryPreviewView: View {
                         entry.creativityLearning.projects.isEmpty ? nil : ("Projects", entry.creativityLearning.projects)
                     ].compactMap { $0 }
                 ),
-                currentEntry?.creativityLearning.isEmpty ?? true
+                false
             ))
         }
         
-        // Social
-        if !isEmptySection(entry.social) {
+        if !entry.social.isEmpty {
             sections.append((
                 SectionData(
                     title: "Social",
@@ -165,12 +158,11 @@ struct GeneratedEntryPreviewView: View {
                         entry.social.socialEvents.isEmpty ? nil : ("Social Events", entry.social.socialEvents)
                     ].compactMap { $0 }
                 ),
-                currentEntry?.social.isEmpty ?? true
+                false
             ))
         }
         
-        // Work & Career
-        if !isEmptySection(entry.workCareer) {
+        if !entry.workCareer.isEmpty {
             sections.append((
                 SectionData(
                     title: "Work & Career",
@@ -180,7 +172,7 @@ struct GeneratedEntryPreviewView: View {
                         entry.workCareer.workIdeas.isEmpty ? nil : ("Work Ideas", entry.workCareer.workIdeas)
                     ].compactMap { $0 }
                 ),
-                currentEntry?.workCareer.isEmpty ?? true
+                false
             ))
         }
         
@@ -188,14 +180,12 @@ struct GeneratedEntryPreviewView: View {
     }
 }
 
-// Data structure for section content
 struct SectionData: Hashable {
     let title: String
-    let content: [(String, String)] // (label, value)
+    let content: [(String, String)]
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(title)
-        // We need to hash the content too since it defines uniqueness
         for (label, value) in content {
             hasher.combine(label)
             hasher.combine(value)
@@ -217,7 +207,6 @@ struct SectionData: Hashable {
     }
 }
 
-// Section view component
 struct SectionView: View {
     let title: String
     let isNew: Bool
@@ -225,28 +214,8 @@ struct SectionView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(title)
-                    .font(.headline)
-                
-                if isNew {
-                    Text("New")
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.green.opacity(0.2))
-                        .foregroundColor(.green)
-                        .cornerRadius(4)
-                } else {
-                    Text("Updated")
-                        .font(.caption)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.blue.opacity(0.2))
-                        .foregroundColor(.blue)
-                        .cornerRadius(4)
-                }
-            }
+            Text(title)
+                .font(.headline)
             
             Divider()
             
