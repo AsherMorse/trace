@@ -4,6 +4,14 @@ struct VoiceRecordingView: View {
     @Bindable var viewModel: VoiceAssistantViewModel
     @Environment(\.dismiss) private var dismiss
     
+    // Independent timer tracking
+    @State private var startTime: Date? = nil
+    @State private var displayTime: String = "00:00"
+    @State private var timerActive = false
+    
+    // Timer publisher that updates every 0.1 seconds
+    private let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
+    
     var body: some View {
         switch viewModel.state {
         case .requestingPermission:
@@ -30,6 +38,22 @@ struct VoiceRecordingView: View {
             .onAppear {
                 Task {
                     await viewModel.checkMicrophonePermission()
+                }
+            }
+            .onChange(of: viewModel.state) { _, newState in
+                if newState == .recording && !timerActive {
+                    startTime = Date()
+                    timerActive = true
+                } else if newState != .recording {
+                    timerActive = false
+                }
+            }
+            .onReceive(timer) { _ in
+                if timerActive, let start = startTime {
+                    let elapsed = Date().timeIntervalSince(start)
+                    let minutes = Int(elapsed) / 60
+                    let seconds = Int(elapsed) % 60
+                    displayTime = String(format: "%02d:%02d", minutes, seconds)
                 }
             }
         case .processing:
@@ -99,7 +123,7 @@ struct VoiceRecordingView: View {
                 }
             }
             
-            Text(formattedDuration)
+            Text(displayTime)
                 .font(.system(.title, design: .monospaced))
                 .foregroundColor(viewModel.state == .recording ? .primary : .secondary)
         }
@@ -109,6 +133,10 @@ struct VoiceRecordingView: View {
     private var controlsView: some View {
         HStack(spacing: 30) {
             Button {
+                // Reset display time when starting recording
+                displayTime = "00:00"
+                startTime = nil
+                timerActive = false
                 viewModel.startRecording()
             } label: {
                 VStack {
@@ -124,6 +152,7 @@ struct VoiceRecordingView: View {
             
             
             Button {
+                timerActive = false
                 viewModel.stopRecording()
             } label: {
                 VStack {
@@ -143,6 +172,7 @@ struct VoiceRecordingView: View {
     private var actionButtonsView: some View {
         HStack {
             Button("Cancel") {
+                timerActive = false
                 viewModel.cancelRecording()
                 dismiss()
             }
@@ -150,13 +180,6 @@ struct VoiceRecordingView: View {
             Spacer()
         }
         .padding(.horizontal)
-    }
-    
-    private var formattedDuration: String {
-        let duration = Int(viewModel.recordingDuration)
-        let minutes = duration / 60
-        let seconds = duration % 60
-        return String(format: "%02d:%02d", minutes, seconds)
     }
 }
 

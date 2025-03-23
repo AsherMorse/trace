@@ -26,14 +26,14 @@ struct GeneratedEntryPreviewView: View {
                         
                         if sectionsToShow.isEmpty {
                             VStack(alignment: .center, spacing: 12) {
-                                Image(systemName: "checkmark.circle")
+                                Image(systemName: "exclamationmark.circle")
                                     .font(.largeTitle)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.orange)
                                 
                                 Text("No Content Generated")
                                     .font(.headline)
                                 
-                                Text("The voice recording didn't produce any journal content.")
+                                Text("The voice recording didn't produce any usable journal content. Your existing journal entry will remain unchanged.")
                                     .font(.body)
                                     .foregroundColor(.secondary)
                                     .multilineTextAlignment(.center)
@@ -50,7 +50,7 @@ struct GeneratedEntryPreviewView: View {
             .frame(maxHeight: 300)
             
             HStack {
-                Button("Reject") {
+                Button("Dismiss") {
                     viewModel.rejectGeneratedContent()
                     dismiss()
                 }
@@ -58,11 +58,13 @@ struct GeneratedEntryPreviewView: View {
                 
                 Spacer()
                 
-                Button("Accept") {
-                    viewModel.acceptGeneratedContent(mergeStrategy: .replace)
-                    dismiss()
+                if generatedEntry != nil && !(getVisibleSections(generatedEntry!).isEmpty) {
+                    Button("Accept") {
+                        viewModel.acceptGeneratedContent(mergeStrategy: .replace)
+                        dismiss()
+                    }
+                    .keyboardShortcut(.defaultAction)
                 }
-                .keyboardShortcut(.defaultAction)
             }
         }
         .padding()
