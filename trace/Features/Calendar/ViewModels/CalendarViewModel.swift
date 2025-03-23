@@ -32,10 +32,9 @@ final class CalendarViewModel: ObservableObject {
     var weekdaySymbols: [String] {
         let formatter = DateFormatter().with { $0.dateFormat = "EEE" }
         
-        // Safely create weekday strings
         let weekdays = (1...7).compactMap { weekday -> String? in
             guard let date = calendar.date(from: DateComponents(weekday: weekday)) else {
-                return "???" // Fallback for unexpected errors
+                return nil
             }
             return formatter.string(from: date)
         }

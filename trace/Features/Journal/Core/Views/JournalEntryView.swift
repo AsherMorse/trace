@@ -149,7 +149,6 @@ struct JournalEntryView: View {
         updateSocialFromJournal()
         updateWorkCareerFromJournal()
         
-        // Update viewModel references for deletion functionality
         creativityLearningViewModel.journalViewModel = viewModel
         socialViewModel.journalViewModel = viewModel
         workCareerViewModel.journalViewModel = viewModel

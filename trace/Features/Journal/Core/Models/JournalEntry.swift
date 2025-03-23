@@ -49,6 +49,15 @@ struct JournalEntry {
     
     var fileURL: URL?
     
+    var isEmpty: Bool {
+        return dailyCheckIn.isEmpty &&
+               personalGrowth.isEmpty &&
+               wellbeing.isEmpty &&
+               creativityLearning.isEmpty &&
+               social.isEmpty &&
+               workCareer.isEmpty
+    }
+    
     init(date: Date) {
         self.date = date
         self.dailyCheckIn = JournalDailyCheckIn()
@@ -140,12 +149,29 @@ struct JournalEntry {
         
         var markdown = "# Journal Entry: \(dateString)\n\n"
         
-        markdown += dailyCheckIn.toMarkdown()
-        markdown += personalGrowth.toMarkdown()
-        markdown += wellbeing.toMarkdown()
-        markdown += creativityLearning.toMarkdown()
-        markdown += social.toMarkdown()
-        markdown += workCareer.toMarkdown()
+        if !dailyCheckIn.isEmpty {
+            markdown += dailyCheckIn.toMarkdown()
+        }
+        
+        if !personalGrowth.isEmpty {
+            markdown += personalGrowth.toMarkdown()
+        }
+        
+        if !wellbeing.isEmpty {
+            markdown += wellbeing.toMarkdown()
+        }
+        
+        if !creativityLearning.isEmpty {
+            markdown += creativityLearning.toMarkdown()
+        }
+        
+        if !social.isEmpty {
+            markdown += social.toMarkdown()
+        }
+        
+        if !workCareer.isEmpty {
+            markdown += workCareer.toMarkdown()
+        }
         
         return markdown
     }
@@ -161,6 +187,12 @@ struct JournalDailyCheckIn: Equatable {
     var mood: String = ""
     var todaysHighlight: String = ""
     var dailyOverview: String = ""
+    
+    var isEmpty: Bool {
+        return mood.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               todaysHighlight.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               dailyOverview.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     
     func toMarkdown() -> String {
         var markdown = "## Daily Check-in\n\n"
@@ -203,6 +235,13 @@ struct JournalPersonalGrowth: Equatable {
     var achievements: String = ""
     var challenges: String = ""
     var goals: String = ""
+    
+    var isEmpty: Bool {
+        return reflections.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               achievements.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               challenges.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               goals.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     
     func toMarkdown() -> String {
         var markdown = "## Personal Growth\n\n"
@@ -249,6 +288,16 @@ struct JournalWellbeing: Equatable {
     var energyLevel: Int = 5
     var physicalActivity: String = ""
     var mentalHealth: String = ""
+    var sleepQuality: String = ""
+    var nutrition: String = ""
+    
+    var isEmpty: Bool {
+        return energyLevel == 5 &&
+               physicalActivity.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               mentalHealth.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               sleepQuality.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               nutrition.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     
     func toMarkdown() -> String {
         var markdown = "## Wellbeing\n\n"
@@ -261,6 +310,12 @@ struct JournalWellbeing: Equatable {
         
         markdown += "### Mental Health\n"
         markdown += "\(mentalHealth)\n\n"
+        
+        markdown += "### Sleep Quality\n"
+        markdown += "\(sleepQuality)\n\n"
+        
+        markdown += "### Nutrition\n"
+        markdown += "\(nutrition)\n\n"
         
         return markdown
     }
@@ -279,6 +334,10 @@ struct JournalWellbeing: Equatable {
                 wellbeing.physicalActivity = content.trimmingCharacters(in: .whitespacesAndNewlines)
             case "Mental Health":
                 wellbeing.mentalHealth = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Sleep Quality":
+                wellbeing.sleepQuality = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            case "Nutrition":
+                wellbeing.nutrition = content.trimmingCharacters(in: .whitespacesAndNewlines)
             default:
                 break
             }
@@ -293,6 +352,13 @@ struct JournalCreativityLearning: Equatable {
     var learningLog: String = ""
     var booksMedia: [JournalMediaItem] = []
     var projects: String = ""
+    
+    var isEmpty: Bool {
+        return ideas.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               learningLog.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               booksMedia.isEmpty &&
+               projects.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     
     func toMarkdown() -> String {
         var markdown = "## Creativity & Learning\n\n"
@@ -398,6 +464,12 @@ struct JournalSocial: Equatable {
     var relationshipUpdates: String = ""
     var socialEvents: String = ""
     
+    var isEmpty: Bool {
+        return meaningfulInteractions.isEmpty &&
+               relationshipUpdates.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               socialEvents.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
     func toMarkdown() -> String {
         var markdown = "## Social\n\n"
         
@@ -490,6 +562,14 @@ struct JournalWorkCareer: Equatable {
     var challenges: String = ""
     var wins: String = ""
     var workIdeas: String = ""
+    
+    var isEmpty: Bool {
+        return workItems.isEmpty &&
+               meetings.isEmpty &&
+               challenges.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               wins.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+               workIdeas.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
     
     func toMarkdown() -> String {
         var markdown = "## Work & Career\n\n"

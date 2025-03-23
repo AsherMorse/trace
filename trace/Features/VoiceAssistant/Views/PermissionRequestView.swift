@@ -32,7 +32,6 @@ struct PermissionRequestView: View {
                         await viewModel.checkMicrophonePermission()
                         
                         if !viewModel.permissionStatus {
-                            // Show system settings action if still not granted
                             if let settingsURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
                                 NSWorkspace.shared.open(settingsURL)
                             }

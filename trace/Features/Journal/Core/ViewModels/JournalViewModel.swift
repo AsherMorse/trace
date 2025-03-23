@@ -19,7 +19,6 @@ final class JournalViewModel {
     var hasError: Bool = false
     var errorMessage: String?
     
-    // For confirmation dialogs
     var showingDeleteConfirmation = false
     var itemToDeleteType = ""
     var itemToDeleteIndex = -1
@@ -52,7 +51,6 @@ final class JournalViewModel {
         
         isDirty = fileContent != editedContent
         
-        // Notify observers of content change
         NotificationCenter.default.post(name: .journalEntryUpdated, object: nil)
     }
     
@@ -100,16 +98,17 @@ final class JournalViewModel {
     }
     
     func saveCurrentEntry() async throws {
-        guard let date = selectedDate, isDirty else { return }
+        guard let date = selectedDate else { return }
         
         isLoading = true
         
         do {
-            
             if let entry = currentEntry {
-                try await storageManager.saveEntry(entry)
-                fileContent = editedContent
-                isDirty = false
+                if isDirty {
+                    try await storageManager.saveEntry(entry)
+                    fileContent = editedContent
+                    isDirty = false
+                }
             } else if let entry = JournalEntry(fromMarkdown: editedContent, date: date) {
                 try await storageManager.saveEntry(entry)
                 fileContent = editedContent
@@ -168,15 +167,18 @@ final class JournalViewModel {
             do {
                 if storageManager.entryExists(for: date) {
                     let entry = try await storageManager.loadEntry(for: date)
+                    
                     currentEntry = entry
                     fileContent = entry.toMarkdown()
                     editedContent = fileContent
+                    
                     isDirty = false
                 } else {
+                    let newEntry = JournalEntry(date: date)
+                    currentEntry = newEntry
                     fileContent = ""
                     editedContent = ""
                     isDirty = false
-                    currentEntry = JournalEntry(date: date)
                 }
                 isLoading = false
             } catch {
@@ -196,8 +198,12 @@ final class JournalViewModel {
         
         Task { @MainActor in
             do {
+                if storageManager.entryExists(for: date) {
+                    loadContent(for: date)
+                    return
+                }
+                
                 let entry = JournalEntry(date: date)
-                try await storageManager.saveEntry(entry)
                 
                 selectedDate = date
                 currentEntry = entry
@@ -205,6 +211,10 @@ final class JournalViewModel {
                 editedContent = fileContent
                 isDirty = false
                 isLoading = false
+                
+                if !entry.isEmpty {
+                    try await storageManager.saveEntry(entry)
+                }
             } catch {
                 handleError(error)
             }
@@ -242,7 +252,6 @@ final class JournalViewModel {
     }
     
     private func handleContentChange() {
-        
         isDirty = editedContent != fileContent
         
         if isDirty, let date = selectedDate,
@@ -252,19 +261,19 @@ final class JournalViewModel {
     }
     
     private func handleEntryChange() {
-        // Update the edited content if it's coming from a direct entry change
-        // (like from VoiceAssistant or other components)
         if let entry = currentEntry {
             let newContent = entry.toMarkdown()
+            
             if editedContent != newContent {
                 editedContent = newContent
             }
             
             isDirty = fileContent != editedContent
         }
+        
+        NotificationCenter.default.post(name: .journalEntryUpdated, object: nil)
     }
     
-    // MARK: - Item deletion methods
     
     func deleteMediaItem(at index: Int) {
         guard var entry = currentEntry, 
@@ -303,6 +312,25 @@ final class JournalViewModel {
         updateEntrySection(entry)
         Task { @MainActor in
             try? await saveCurrentEntry()
+        }
+    }
+    
+    func isSectionEmpty(_ section: JournalSection) -> Bool {
+        guard let entry = currentEntry else { return true }
+        
+        switch section {
+        case .dailyCheckIn:
+            return entry.dailyCheckIn.isEmpty
+        case .personalGrowth:
+            return entry.personalGrowth.isEmpty
+        case .wellbeing:
+            return entry.wellbeing.isEmpty
+        case .creativityLearning:
+            return entry.creativityLearning.isEmpty
+        case .social:
+            return entry.social.isEmpty
+        case .workCareer:
+            return entry.workCareer.isEmpty
         }
     }
 } 

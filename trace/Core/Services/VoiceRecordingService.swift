@@ -50,32 +50,25 @@ final class VoiceRecordingService: NSObject, VoiceRecordingServiceProtocol {
     }
     
     func startRecording() throws -> URL {
-        // Check permissions
         let permissionStatus = checkPermissionStatus()
         if permissionStatus != .authorized {
             throw VoiceRecordingError.microphonePermissionDenied
         }
         
-        // Stop any existing recording
         if recordingState == .recording {
             try stopRecording()
         }
         
-        // Configure AVAudioSession for macOS
         #if os(macOS)
-        // On macOS, AVAudioSession is not used, but we need to make sure
-        // the audio engine is properly reset
         engine.stop()
         engine.reset()
         #endif
         
-        // Create output file
         let tempURL = createTempURL()
         recordingURL = tempURL
         
         let format = engine.inputNode.outputFormat(forBus: 0)
         
-        // Create audio file
         audioFile = try AVAudioFile(
             forWriting: tempURL,
             settings: [
@@ -87,7 +80,6 @@ final class VoiceRecordingService: NSObject, VoiceRecordingServiceProtocol {
             ]
         )
         
-        // Set up tap on input node
         engine.inputNode.installTap(onBus: 0, bufferSize: 4096, format: format) { [weak self] buffer, time in
             guard let self = self, let audioFile = self.audioFile, self.recordingState == .recording else { return }
             
@@ -98,7 +90,6 @@ final class VoiceRecordingService: NSObject, VoiceRecordingServiceProtocol {
             }
         }
         
-        // Prepare and start engine
         engine.prepare()
         try engine.start()
         

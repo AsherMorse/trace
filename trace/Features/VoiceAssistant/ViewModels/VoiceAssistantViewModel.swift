@@ -18,7 +18,6 @@ enum VoiceAssistantState: Equatable {
              (.previewing, .previewing):
             return true
         case (.error, .error):
-            // Note: Error doesn't conform to Equatable, so we can only check the case
             return true
         default:
             return false
@@ -54,7 +53,6 @@ final class VoiceAssistantViewModel {
         self.settingsManager = settingsManager
         self.journalViewModel = journalViewModel
         
-        // Check initial permission status
         if voiceRecordingService.checkPermissionStatus() == .authorized {
             self.permissionStatus = true
         }
@@ -83,7 +81,6 @@ final class VoiceAssistantViewModel {
     func startRecording() {
         guard state == .ready else { return }
         
-        // First check permission
         Task {
             await checkMicrophonePermission()
             
@@ -179,15 +176,12 @@ final class VoiceAssistantViewModel {
                 
                 transcription = try await service.transcribe(audioURL: url)
                 
-                // Try to load the template from the bundle or from the filesystem
                 var formatTemplate: String
                 if let templateURL = Bundle.main.url(forResource: "JournalEntryFormat", withExtension: "md") {
-                    // If it's in the bundle, load it from there
                     formatTemplate = try String(contentsOf: templateURL, encoding: .utf8)
-                } else if let resourceURL = URL(string: "file:///Users/ash/Dev/trace/JournalEntryFormat.md") {
-                    // If not in bundle, try loading directly from project directory 
-                    if FileManager.default.fileExists(atPath: resourceURL.path) {
-                        formatTemplate = try String(contentsOf: resourceURL, encoding: .utf8)
+                } else if let backupURL = URL(string: "file:///Users/ash/Dev/trace/JournalEntryFormat.md") {
+                    if FileManager.default.fileExists(atPath: backupURL.path) {
+                        formatTemplate = try String(contentsOf: backupURL, encoding: .utf8)
                     } else {
                         throw NSError(
                             domain: "VoiceAssistantViewModel",

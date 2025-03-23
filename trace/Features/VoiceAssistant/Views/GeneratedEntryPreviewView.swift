@@ -56,7 +56,6 @@ struct GeneratedEntryPreviewView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
-            // Check if there's existing content
             existingContent = viewModel.journalViewModel.currentEntry != nil
         }
     }

@@ -12,7 +12,6 @@ struct VoiceRecordingView: View {
                 .background(Color(NSColor.windowBackgroundColor))
                 .frame(width: 400, height: 300)
                 .onAppear {
-                    // Check permission when view appears
                     Task {
                         await viewModel.checkMicrophonePermission()
                     }
@@ -29,7 +28,6 @@ struct VoiceRecordingView: View {
             .background(Color(NSColor.windowBackgroundColor))
             .frame(width: 400, height: 300)
             .onAppear {
-                // Check permission when view appears
                 Task {
                     await viewModel.checkMicrophonePermission()
                 }
@@ -45,7 +43,6 @@ struct VoiceRecordingView: View {
                 .background(Color(NSColor.windowBackgroundColor))
                 .frame(width: 500, height: 500)
                 .onDisappear {
-                    // Check if we need to reset if it wasn't done explicitly
                     if viewModel.state == .previewing {
                         viewModel.resetState()
                     }
@@ -125,23 +122,6 @@ struct VoiceRecordingView: View {
             .foregroundColor(.red)
             .disabled(viewModel.state != .ready)
             
-            // Button {
-            //     if viewModel.state == .recording {
-            //         viewModel.pauseRecording()
-            //     } else if viewModel.isRecordingPaused {
-            //         viewModel.resumeRecording()
-            //     }
-            // } label: {
-            //     VStack {
-            //         Image(systemName: viewModel.recordingControlIcon)
-            //             .font(.system(size: 32))
-            //         Text(viewModel.recordingControlLabel)
-            //             .font(.caption)
-            //     }
-            // }
-            // .buttonStyle(.plain)
-            // .foregroundColor(.primary)
-            // .disabled(viewModel.state != .recording && !viewModel.isRecordingPaused)
             
             Button {
                 viewModel.stopRecording()
